@@ -322,7 +322,6 @@ function buildList(){
       <div class="ddesc">Circuit au départ du parking des randonneurs.</div>
       <div class="dbtns">
         <button class="dbtn prim" style="background:${t.color}" onclick="zoomTrack(${t.id})">🔍 Zoomer</button>
-        <button class="dbtn sec" onclick="guideToStart(${t.id})">🧭 Guidage</button>
         <button class="dbtn sec" onclick="downloadGPX(${t.id})">⬇️ GPX</button>
         <button class="dbtn sec" onclick="startTrackGps(${t.id})">📍 GPS live</button>
         <button class="dbtn sec" onclick="showAll()">← Tous</button>
@@ -407,14 +406,6 @@ function downloadGPX(id){
   a.click();
   a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-
-function guideToStart(id){
-  const track=TRACKS.find(t=>t.id===id);
-  if(!track || !track.coords || !track.coords.length) return;
-  const [lat,lng]=track.coords[0];
-  const url=`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`;
-  window.open(url,"_blank");
 }
 
 function updateUserPosition(lat,lng,accuracy){
