@@ -103,29 +103,32 @@ html,body{height:100%;margin:0;padding:0;font-family:"Source Sans 3",sans-serif;
 .ll{width:16px;height:3px;border-radius:2px;flex-shrink:0}
 
 /* Mobile */
-.mtog{display:none;position:fixed;bottom:16px;right:16px;background:var(--forest);color:var(--cream);border:none;border-radius:22px;padding:9px 20px;font-size:.78rem;cursor:pointer;z-index:1001;box-shadow:0 3px 14px rgba(0,0,0,.3)}
+.mtog{display:none;position:fixed;bottom:16px;right:16px;background:var(--forest);color:var(--cream);border:none;border-radius:22px;padding:10px 18px;font-size:.78rem;font-weight:700;cursor:pointer;z-index:2000;box-shadow:0 3px 14px rgba(0,0,0,.35);letter-spacing:.03em}
+
+/* Drawer mobile — complètement indépendant de la carte */
+.mob-drawer-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1500;touch-action:none}
+.mob-drawer-bg.open{display:block}
+.mob-drawer{
+  position:fixed;bottom:0;left:0;right:0;
+  height:65vh;
+  background:var(--parch);
+  border-radius:16px 16px 0 0;
+  box-shadow:0 -4px 24px rgba(0,0,0,.3);
+  z-index:1600;
+  display:flex;flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.mob-drawer.open{transform:translateY(0)}
+.mob-drawer .tabs{border-radius:16px 16px 0 0;flex-shrink:0}
+.mob-drawer-scroll{flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
+
 @media(max-width:600px){
-  .body{position:relative;overflow:hidden}
-  .side{
-    position:fixed;
-    bottom:0;left:0;right:0;
-    width:100%;
-    height:60vh;
-    max-height:70vh;
-    border-radius:12px 12px 0 0;
-    box-shadow:0 -3px 16px rgba(0,0,0,.3);
-    transform:translateY(100%);
-    transition:transform .3s ease;
-    z-index:1000;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
-  }
-  .side.open{transform:translateY(0)}
-  .side .tc{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
+  .side{display:none !important}
   #map{position:absolute;inset:0;height:100% !important;width:100% !important}
+  .body{position:relative;overflow:hidden;flex:1}
   .mtog{display:block}
-  .gpsfab{bottom:16px;right:50%;transform:translateX(50%)}
+  .gpsfab{left:16px;right:auto;transform:none;bottom:16px}
 }
 </style>
 </head>
@@ -173,8 +176,40 @@ html,body{height:100%;margin:0;padding:0;font-family:"Source Sans 3",sans-serif;
     <div id="map"></div>
   </div>
 </div>
-<button class="mtog" id="mtog" onclick="toggleSide()">📋 Circuits</button>
+<button class="mtog" id="mtog" onclick="toggleDrawer()">📋 Circuits</button>
 <button class="gpsfab blink" id="gpsfab" onclick="toggleGps()"><span class="ico">📍</span><span>Localisez-moi</span></button>
+
+<!-- Drawer mobile — DOM séparé de Leaflet pour un vrai scroll natif -->
+<div class="mob-drawer-bg" id="mob-bg" onclick="closeDrawer()"></div>
+<div class="mob-drawer" id="mob-drawer">
+  <div class="tabs">
+    <button class="tab on" id="mob-tab-circuits" onclick="tabDrawer('circuits',this)">🥾 Circuits</button>
+    <button class="tab" id="mob-tab-pois" onclick="tabDrawer('pois',this)">📍 Lieux</button>
+    <button class="tab" id="mob-tab-infos" onclick="tabDrawer('infos',this)">ℹ️ Infos</button>
+  </div>
+  <div class="mob-drawer-scroll" id="mob-scroll">
+    <div id="mob-tc-circuits">
+      <button class="showall" onclick="showAll();closeDrawer()">🗺️ Afficher tous les circuits</button>
+      <div id="mob-circuit-list"></div>
+    </div>
+    <div id="mob-tc-pois" style="display:none">
+      <div class="poi" onclick="goTo(47.8185,1.8095,0)"><div class="pi">▶</div><div><div class="pn">Parking des randonneurs</div><div class="pc">Point de départ · Sortie du Bourg</div></div></div>
+      <div class="poi" onclick="goTo(47.8145,1.802,1)"><div class="pi">⛰️</div><div><div class="pn">Butte des Élus</div><div class="pc">Tumulus gaulois classé 1924 · Vue panoramique</div></div></div>
+      <div class="poi" onclick="goTo(47.8218,1.805,2)"><div class="pi">🏰</div><div><div class="pn">Château de Mézières</div><div class="pc">XVIIe s. · Style néo-Louis XIII</div></div></div>
+      <div class="poi" onclick="goTo(47.8222,1.8078,3)"><div class="pi">⛪</div><div><div class="pn">Église Saint-Avit</div><div class="pc">XVe s. · Reconstruite en 1891</div></div></div>
+      <div class="poi" onclick="goTo(47.816,1.813,4)"><div class="pi">🍷</div><div><div class="pn">Vignes AOC Orléans-Cléry</div><div class="pc">Cabernet Franc · Vignerons indépendants</div></div></div>
+      <div class="poi" onclick="goTo(47.808,1.804,5)"><div class="pi">💧</div><div><div class="pn">Vallée aux Moines</div><div class="pc">Site naturel remarquable · Halimium protégé</div></div></div>
+    </div>
+    <div id="mob-tc-infos" style="display:none">
+      <div class="ib"><h3>🥾 Conseils</h3><p>Chaussures adaptées recommandées. Chemins pouvant être glissants par temps humide. Emportez de l'eau pour les longs parcours.</p></div>
+      <div class="ib"><h3>🐾 Animaux</h3><p>Chiens admis en laisse. Respectez la faune locale.</p></div>
+      <div class="ib"><h3>🚌 Accès bus</h3><p>Rémi Ligne 8 — arrêts <strong>Mairie</strong> et <strong>Le Bréau</strong><br>Depuis Orléans : ~30 min</p></div>
+      <div class="ib"><h3>📞 Mairie</h3><p>36 rue du bourg — 45370<br>02 38 45 61 76<br>Lun 14h-17h30 · Ven 8h30-11h30</p>
+        <div class="hl">🌐 mezieres-lez-clery.fr<br>📻 Radio Mézières sur Facebook</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 const TRACKS = [
@@ -319,10 +354,9 @@ function buildLegend(d){
     </div>`).join("");
 }
 
-// Construction liste sidebar
+// Construction liste sidebar (desktop + drawer mobile)
 function buildList(){
-  const el=document.getElementById("circuit-list");
-  el.innerHTML=TRACKS.map(t=>{
+  const makeHtml=()=>TRACKS.map(t=>{
     const d=diff(t.km);
     return `
     <div class="card" id="card-${t.id}" onclick="selectTrack(${t.id})">
@@ -349,6 +383,11 @@ function buildList(){
       </div>
     </div>`;
   }).join("");
+  const html=makeHtml();
+  const el=document.getElementById("circuit-list");
+  if(el) el.innerHTML=html;
+  const mob=document.getElementById("mob-circuit-list");
+  if(mob) mob.innerHTML=html;
 }
 
 // Sélection d'un circuit
@@ -375,7 +414,7 @@ function selectTrack(id){
 
   buildLegend();
   zoomTrack(id);
-  if(window.innerWidth<=600)closeSide();
+  if(window.innerWidth<=600)closeDrawer();
 }
 
 function zoomTrack(id){
@@ -527,21 +566,37 @@ function tab(n,btn){
   btn.classList.add("on");
 }
 const side=document.getElementById("side"),mtog=document.getElementById("mtog");
-function toggleSide(){side.classList.toggle("open");mtog.textContent=side.classList.contains("open")?"🗺️ Carte":"📋 Circuits";}
-function closeSide(){side.classList.remove("open");mtog.textContent="📋 Circuits";}
+
+// ── Drawer mobile ──
+function toggleDrawer(){
+  const bg=document.getElementById('mob-bg');
+  const dr=document.getElementById('mob-drawer');
+  const open=dr.classList.toggle('open');
+  bg.classList.toggle('open',open);
+  mtog.textContent=open?'🗺️ Carte':'📋 Circuits';
+}
+function closeDrawer(){
+  document.getElementById('mob-bg').classList.remove('open');
+  document.getElementById('mob-drawer').classList.remove('open');
+  mtog.textContent='📋 Circuits';
+}
+function tabDrawer(n,btn){
+  ['circuits','pois','infos'].forEach(function(id){
+    document.getElementById('mob-tc-'+id).style.display = id===n?'block':'none';
+    document.getElementById('mob-tab-'+id).classList.toggle('on', id===n);
+  });
+}
+
+// Conserver la sidebar desktop
+function toggleSide(){side.classList.toggle("open");}
+function closeSide(){
+  side.classList.remove("open");
+  closeDrawer();
+}
 
 // Init
 buildList();
 
-// ── Bloquer la propagation touch vers Leaflet sous le panel mobile ──
-(function(){
-  const sideEl = document.getElementById('side');
-  if (!sideEl) return;
-  // Empêche Leaflet de recevoir les events touch quand on scrolle la sidebar
-  ['touchstart','touchmove','touchend','wheel','mousewheel'].forEach(function(evt){
-    sideEl.addEventListener(evt, function(e){ e.stopPropagation(); }, { passive: true });
-  });
-})();
 </script>
 </body>
 </html>
