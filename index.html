@@ -39,6 +39,11 @@ html,body{height:100%;margin:0;padding:0;font-family:"Source Sans 3",sans-serif;
 /* Bouton "Tout afficher" */
 .showall{margin:8px 10px;padding:7px 12px;background:var(--forest);color:var(--cream);border:none;border-radius:6px;font-size:.72rem;cursor:pointer;letter-spacing:.04em;text-align:center;transition:background .2s}
 .showall:hover{background:var(--moss)}
+.tc.detail-mode .showall{display:none}
+#circuit-list.detail-mode>.card,#circuit-list.detail-mode>.detail{display:none}
+#circuit-list.detail-mode>.detail.on{display:block;margin:10px;border-radius:10px;border:1px solid rgba(0,0,0,.08);box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.gpsfab{position:fixed;right:14px;bottom:16px;background:var(--forest);color:var(--cream);border:none;border-radius:22px;padding:9px 14px;font-size:.78rem;cursor:pointer;z-index:1000;box-shadow:0 3px 14px rgba(0,0,0,.3)}
+.gpsfab.on{background:var(--moss)}
 
 /* Cards circuits */
 .card{padding:10px 12px 10px 16px;border-bottom:1px solid rgba(0,0,0,.07);cursor:pointer;position:relative;transition:background .15s;display:flex;align-items:center;gap:10px}
@@ -148,6 +153,7 @@ html,body{height:100%;margin:0;padding:0;font-family:"Source Sans 3",sans-serif;
   </div>
 </div>
 <button class="mtog" id="mtog" onclick="toggleSide()">📋 Circuits</button>
+<button class="gpsfab" id="gpsfab" onclick="toggleGps()">📍 GPS</button>
 
 <script>
 const TRACKS = [
@@ -249,6 +255,10 @@ L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
 // Tracés & état
 const layers={};
 let activeId=null;
+let userMarker=null;
+let userCircle=null;
+let gpsWatchId=null;
+let followUser=false;
 
 TRACKS.forEach(t=>{
   layers[t.id]=L.polyline(t.coords,{
@@ -312,6 +322,8 @@ function buildList(){
       <div class="ddesc">Circuit au départ du parking des randonneurs.</div>
       <div class="dbtns">
         <button class="dbtn prim" style="background:${t.color}" onclick="zoomTrack(${t.id})">🔍 Zoomer</button>
+        <button class="dbtn sec" onclick="downloadGPX(${t.id})">⬇️ GPX</button>
+        <button class="dbtn sec" onclick="startTrackGps(${t.id})">📍 GPS live</button>
         <button class="dbtn sec" onclick="showAll()">← Tous</button>
       </div>
     </div>`;
@@ -320,11 +332,9 @@ function buildList(){
 
 // Sélection d'un circuit
 function selectTrack(id){
-  // Si on reclique sur le même → désélectionner
   if(activeId===id){ clearSelection(); return; }
   activeId=id;
 
-  // Masquer tous les autres, afficher celui-ci en évidence
   TRACKS.forEach(t=>{
     if(t.id===id){
       layers[t.id].setStyle({weight:5,opacity:1}).bringToFront();
@@ -333,16 +343,18 @@ function selectTrack(id){
     }
   });
 
-  // Sidebar
+  const list=document.getElementById("circuit-list");
+  const circuitsTab=document.getElementById("tc-circuits");
+  list.classList.add("detail-mode");
+  circuitsTab.classList.add("detail-mode");
   document.querySelectorAll(".card").forEach(c=>c.classList.remove("on"));
   document.querySelectorAll(".detail").forEach(d=>d.classList.remove("on"));
   document.getElementById(`card-${id}`)?.classList.add("on");
   document.getElementById(`det-${id}`)?.classList.add("on");
-  document.getElementById(`card-${id}`)?.scrollIntoView({behavior:"smooth",block:"nearest"});
 
-  // Légende
   buildLegend();
   zoomTrack(id);
+  if(window.innerWidth<=600)closeSide();
 }
 
 function zoomTrack(id){
@@ -354,6 +366,8 @@ function clearSelection(){
   TRACKS.forEach(t=>layers[t.id].setStyle({weight:3,opacity:.7}));
   document.querySelectorAll(".card").forEach(c=>c.classList.remove("on"));
   document.querySelectorAll(".detail").forEach(d=>d.classList.remove("on"));
+  document.getElementById("circuit-list")?.classList.remove("detail-mode");
+  document.getElementById("tc-circuits")?.classList.remove("detail-mode");
   buildLegend();
 }
 
@@ -362,6 +376,90 @@ function showAll(){
   const allCoords=TRACKS.flatMap(t=>t.coords);
   const bounds=L.latLngBounds(allCoords);
   map.fitBounds(bounds,{padding:[30,30]});
+}
+
+function buildGpx(track){
+  const pts=track.coords.map(([lat,lng])=>`      <trkpt lat="${lat}" lon="${lng}"></trkpt>`).join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Mézières-lez-Cléry" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata><name>${track.name}</name></metadata>
+  <trk>
+    <name>${track.name}</name>
+    <trkseg>
+${pts}
+    </trkseg>
+  </trk>
+</gpx>`;
+}
+
+function downloadGPX(id){
+  const track=TRACKS.find(t=>t.id===id);
+  if(!track)return;
+  const blob=new Blob([buildGpx(track)],{type:"application/gpx+xml;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=(track.name.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"") || `circuit-${id}`)+".gpx";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function updateUserPosition(lat,lng,accuracy){
+  const ll=[lat,lng];
+  if(!userMarker){
+    userMarker=L.circleMarker(ll,{radius:8,color:"#1e3a1e",weight:3,fillColor:"#3fa7ff",fillOpacity:1}).addTo(map);
+  } else userMarker.setLatLng(ll);
+
+  if(!userCircle){
+    userCircle=L.circle(ll,{radius:accuracy||25,color:"#3fa7ff",weight:1,fillColor:"#3fa7ff",fillOpacity:.12}).addTo(map);
+  } else {
+    userCircle.setLatLng(ll);
+    userCircle.setRadius(accuracy||25);
+  }
+
+  if(followUser) map.setView(ll, Math.max(map.getZoom(), 15));
+}
+
+function startGps(id=null){
+  if(!navigator.geolocation){
+    alert("Le GPS n'est pas disponible sur cet appareil.");
+    return;
+  }
+  followUser=true;
+  if(id) zoomTrack(id);
+  if(gpsWatchId!==null) return;
+  gpsWatchId=navigator.geolocation.watchPosition(pos=>{
+    updateUserPosition(pos.coords.latitude,pos.coords.longitude,pos.coords.accuracy);
+  },err=>{
+    alert("Impossible d'accéder au GPS : " + err.message);
+    stopGps();
+  },{enableHighAccuracy:true,maximumAge:5000,timeout:15000});
+  document.getElementById("gpsfab")?.classList.add("on");
+  document.getElementById("gpsfab").textContent="📍 GPS actif";
+}
+
+function stopGps(){
+  if(gpsWatchId!==null){
+    navigator.geolocation.clearWatch(gpsWatchId);
+    gpsWatchId=null;
+  }
+  followUser=false;
+  document.getElementById("gpsfab")?.classList.remove("on");
+  document.getElementById("gpsfab").textContent="📍 GPS";
+}
+
+function toggleGps(){
+  if(gpsWatchId!==null) stopGps();
+  else startGps(activeId);
+}
+
+function startTrackGps(id){
+  selectTrack(id);
+  startGps(id);
 }
 
 function goTo(lat,lng,i){
