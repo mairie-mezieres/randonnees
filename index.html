@@ -122,7 +122,7 @@ html,body{height:100%;margin:0;padding:0;font-family:"Source Sans 3",sans-serif;
     overflow:hidden;
   }
   .side.open{transform:translateY(0)}
-  .side .tc{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .side .tc{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
   #map{position:absolute;inset:0;height:100% !important;width:100% !important}
   .mtog{display:block}
   .gpsfab{bottom:16px;right:50%;transform:translateX(50%)}
@@ -532,6 +532,16 @@ function closeSide(){side.classList.remove("open");mtog.textContent="📋 Circui
 
 // Init
 buildList();
+
+// ── Bloquer la propagation touch vers Leaflet sous le panel mobile ──
+(function(){
+  const sideEl = document.getElementById('side');
+  if (!sideEl) return;
+  // Empêche Leaflet de recevoir les events touch quand on scrolle la sidebar
+  ['touchstart','touchmove','touchend','wheel','mousewheel'].forEach(function(evt){
+    sideEl.addEventListener(evt, function(e){ e.stopPropagation(); }, { passive: true });
+  });
+})();
 </script>
 </body>
 </html>
