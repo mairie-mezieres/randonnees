@@ -104,12 +104,15 @@ html,body{height:100%;margin:0;padding:0;font-family:"Source Sans 3",sans-serif;
 
 /* Mobile */
 .mtog{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--forest);color:var(--cream);border:none;border-radius:22px;padding:9px 20px;font-size:.78rem;cursor:pointer;z-index:1000;box-shadow:0 3px 14px rgba(0,0,0,.3)}
-@media(max-width:600px){
-  .body{position:relative}
-  .side{position:absolute;bottom:0;left:0;right:0;width:100%;height:60%;border-radius:12px 12px 0 0;box-shadow:0 -3px 16px rgba(0,0,0,.3);transform:translateY(100%);transition:transform .3s ease;z-index:1000}
-  .side.open{transform:translateY(0)}
+@media(max-width:768px){
+  html,body{overflow:hidden}
+  .body{position:relative;overflow:hidden}
+  .side{position:absolute;bottom:0;left:0;right:0;width:100%;height:min(68dvh,68%);max-height:68dvh;border-radius:12px 12px 0 0;box-shadow:0 -3px 16px rgba(0,0,0,.3);transform:translateY(calc(100% + 16px));transition:transform .3s ease,visibility .3s ease;z-index:1000;visibility:hidden;pointer-events:none;overflow:hidden}
+  .side.open{transform:translateY(0);visibility:visible;pointer-events:auto}
+  .tc{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   #map{height:100%;width:100%}
-  .mtog{display:block}
+  .mtog{display:block;left:auto;right:14px;bottom:82px;transform:none}
+  .gpsfab{right:14px;bottom:16px}
 }
 </style>
 </head>
@@ -454,7 +457,7 @@ function stopGps(){
   }
   followUser=false;
   document.getElementById("gpsfab")?.classList.remove("on");
-  document.getElementById("gpsfab").innerHTML='<span class="ico">📍</span><span>Localisez-moi</span>';
+  document.getElementById("gpsfab").textContent="📍 GPS";
 }
 
 function toggleGps(){
@@ -483,7 +486,7 @@ function toggleGps(){
   }, err=>{
     gpsBtn.classList.remove('on');
     gpsBtn.innerHTML='<span class="ico">📍</span><span>Localisez-moi</span>';
-    alert("Impossible d'accéder à votre position");
+    alert('Impossible d'accéder à votre position');
     console.warn(err);
   }, {enableHighAccuracy:true, maximumAge:5000, timeout:12000});
 }
