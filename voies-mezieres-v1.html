@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Réseau de voies – Mézières-lez-Cléry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#1e3a1e;
+  --moss:#3d6b3d;
+  --sage:#6b9e5e;
+  --cream:#f5f0e8;
+  --parch:#ede8dc;
+  --gold:#c9a84c;
+  --road:#13a9f5;
+  --greenway:#41a881;
+  --afr:#f0a03a;
+  --text:#243124;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--forest);font-family:"Source Sans 3",sans-serif;color:var(--text)}
+.wrap{min-height:100vh;display:flex;flex-direction:column}
+.header{background:var(--forest);color:var(--cream);padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.12)}
+.kicker{font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:#b7d3b1}
+.title{font-family:"Playfair Display",serif;font-size:1.35rem;line-height:1.1;margin-top:2px}
+.sub{font-size:.82rem;color:#d4e2d1;margin-top:5px}
+.main{display:grid;grid-template-columns:320px 1fr;gap:0;min-height:calc(100vh - 92px)}
+.side{background:var(--parch);padding:16px;border-right:1px solid rgba(0,0,0,.08);overflow:auto}
+.card{background:#fff;border-radius:14px;padding:14px 14px 12px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:12px}
+.card h2{font-family:"Playfair Display",serif;font-size:1rem;margin:0 0 10px;color:var(--forest)}
+.card p{margin:0 0 8px;font-size:.82rem;line-height:1.45;color:#4d5e4d}
+.ctrl{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(0,0,0,.07)}
+.ctrl:first-of-type{border-top:none;padding-top:0}
+.ctrl input{width:18px;height:18px;accent-color:var(--forest);cursor:pointer}
+.swatch{width:18px;height:18px;border-radius:50%;flex:0 0 auto;border:2px solid rgba(0,0,0,.08)}
+.lbl{font-size:.84rem;font-weight:700;color:var(--forest)}
+.help{font-size:.72rem;color:#647364;margin-top:3px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button{border:none;border-radius:10px;padding:10px 12px;font:inherit;font-size:.78rem;font-weight:700;cursor:pointer}
+.primary{background:var(--forest);color:var(--cream)}
+.secondary{background:#fff;color:var(--forest);border:1px solid rgba(0,0,0,.08)}
+.viewer{position:relative;background:#d9ddd6;overflow:auto;padding:18px}
+.stage{position:relative;display:inline-block;background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.14);border-radius:14px;overflow:hidden;max-width:100%}
+.base-map{display:block;max-width:min(100%,1100px);height:auto}
+.layer{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.78}
+.layer.hidden{display:none}
+.badge{position:absolute;top:16px;right:16px;background:rgba(245,240,232,.94);backdrop-filter:blur(4px);padding:10px 12px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.12);font-size:.74rem;max-width:280px}
+.badge strong{display:block;color:var(--forest);margin-bottom:4px}
+.footer-note{font-size:.72rem;color:#617061;line-height:1.45}
+.empty{padding:28px;text-align:center;background:#fff;border-radius:14px;box-shadow:0 4px 22px rgba(0,0,0,.12);max-width:860px}
+.empty h3{margin:0 0 8px;font-family:"Playfair Display",serif;color:var(--forest)}
+.empty p{margin:0;font-size:.85rem;color:#5e6c5f;line-height:1.5}
+@media (max-width: 860px){
+  .main{grid-template-columns:1fr}
+  .side{border-right:none;border-bottom:1px solid rgba(0,0,0,.08)}
+  .viewer{padding:12px}
+  .badge{position:static;margin-top:10px;max-width:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="header">
+    <div class="kicker">Commune de Mézières-lez-Cléry</div>
+    <div class="title">Réseau de voies – Version 1</div>
+    <div class="sub">Lecture simple de la carte fournie par l'association, avec affichage par type de voie.</div>
+  </header>
+
+  <main class="main">
+    <aside class="side">
+      <section class="card">
+        <h2>Affichage</h2>
+        <label class="ctrl">
+          <input type="checkbox" id="toggle-road" checked>
+          <span class="swatch" style="background:var(--road)"></span>
+          <span>
+            <div class="lbl">Routes et rues</div>
+            <div class="help">Voies accessibles voiture</div>
+          </span>
+        </label>
+        <label class="ctrl">
+          <input type="checkbox" id="toggle-green" checked>
+          <span class="swatch" style="background:var(--greenway)"></span>
+          <span>
+            <div class="lbl">Voies et chemins communaux</div>
+            <div class="help">Accès piétons / chemins de terre</div>
+          </span>
+        </label>
+        <label class="ctrl">
+          <input type="checkbox" id="toggle-afr" checked>
+          <span class="swatch" style="background:var(--afr)"></span>
+          <span>
+            <div class="lbl">Conventions AFR</div>
+            <div class="help">Statut à confirmer avant diffusion comme accès public</div>
+          </span>
+        </label>
+
+        <div class="btnrow">
+          <button class="primary" id="show-all">Tout afficher</button>
+          <button class="secondary" id="hide-all">Tout masquer</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Cette V1</h2>
+        <p>Cette page repose sur la carte scannée d'origine. Elle permet une lecture claire du réseau, sans recalage GPS fin.</p>
+        <p>Elle est utile pour consultation locale, mais pas encore pour guidage automatique ni calcul précis d'itinéraire.</p>
+      </section>
+
+      <section class="card">
+        <h2>Étape suivante</h2>
+        <p>La V2 consistera à redessiner proprement chaque segment sur une vraie carte, pour ensuite filtrer par usage et générer des parcours.</p>
+        <div class="footer-note">Astuce : placez l'image source à côté de ce fichier sous le nom <strong>carte-voies-mezieres-v1.png</strong>.</div>
+      </section>
+    </aside>
+
+    <section class="viewer">
+      <div class="stage" id="stage" style="display:none;">
+        <img class="base-map" id="baseMap" src="carte-voies-mezieres-v1.png" alt="Carte des voies de Mézières-lez-Cléry">
+        <img class="layer" id="layer-road" src="carte-voies-mezieres-v1.png" alt="Couche routes et rues">
+        <img class="layer" id="layer-green" src="carte-voies-mezieres-v1.png" alt="Couche chemins communaux">
+        <img class="layer" id="layer-afr" src="carte-voies-mezieres-v1.png" alt="Couche AFR">
+      </div>
+
+      <div class="empty" id="emptyState">
+        <h3>Image source à ajouter</h3>
+        <p>Le fichier HTML est prêt. Pour que la carte s'affiche ici, enregistrez simplement l'image que vous m'avez envoyée dans le même dossier que ce fichier, sous le nom <strong>carte-voies-mezieres-v1.png</strong>.</p>
+      </div>
+
+      <div class="badge">
+        <strong>Note</strong>
+        Affichage documentaire V1. Les couleurs peuvent être masquées individuellement pour mieux lire le réseau.
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const road = document.getElementById('layer-road');
+const green = document.getElementById('layer-green');
+const afr = document.getElementById('layer-afr');
+const stage = document.getElementById('stage');
+const emptyState = document.getElementById('emptyState');
+const baseMap = document.getElementById('baseMap');
+
+function applyTint(img, color) {
+  img.style.filter = `sepia(1) saturate(10000%) hue-rotate(${color.hue}deg) brightness(${color.brightness}) contrast(${color.contrast})`;
+}
+
+applyTint(road, { hue: 165, brightness: 1.15, contrast: 1.2 });
+applyTint(green, { hue: 70, brightness: 0.9, contrast: 1.1 });
+applyTint(afr, { hue: 330, brightness: 1.05, contrast: 1.15 });
+
+road.style.mixBlendMode = 'screen';
+green.style.mixBlendMode = 'multiply';
+afr.style.mixBlendMode = 'multiply';
+
+function sync() {
+  road.classList.toggle('hidden', !document.getElementById('toggle-road').checked);
+  green.classList.toggle('hidden', !document.getElementById('toggle-green').checked);
+  afr.classList.toggle('hidden', !document.getElementById('toggle-afr').checked);
+}
+
+document.getElementById('toggle-road').addEventListener('change', sync);
+document.getElementById('toggle-green').addEventListener('change', sync);
+document.getElementById('toggle-afr').addEventListener('change', sync);
+
+document.getElementById('show-all').addEventListener('click', () => {
+  document.getElementById('toggle-road').checked = true;
+  document.getElementById('toggle-green').checked = true;
+  document.getElementById('toggle-afr').checked = true;
+  sync();
+});
+
+document.getElementById('hide-all').addEventListener('click', () => {
+  document.getElementById('toggle-road').checked = false;
+  document.getElementById('toggle-green').checked = false;
+  document.getElementById('toggle-afr').checked = false;
+  sync();
+});
+
+baseMap.addEventListener('load', () => {
+  stage.style.display = 'inline-block';
+  emptyState.style.display = 'none';
+});
+
+baseMap.addEventListener('error', () => {
+  stage.style.display = 'none';
+  emptyState.style.display = 'block';
+});
+
+sync();
+</script>
+</body>
+</html>
