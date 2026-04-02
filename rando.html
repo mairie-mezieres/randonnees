@@ -31,9 +31,9 @@ html,body{height:100%;overflow:hidden;font-family:'Source Sans 3',sans-serif}
 .ht{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--gold);line-height:1.1}
 
 .body{flex:1;display:flex;overflow:hidden}
-.side{width:290px;flex-shrink:0;background:var(--panel);display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
-.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
-.tab{flex:1;padding:10px 3px;background:none;border:none;color:var(--muted);font-family:'Source Sans 3',sans-serif;font-size:.68rem;font-weight:700;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.side{width:310px;flex-shrink:0;background:var(--panel);display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow:visible}
+.tab{flex:1;padding:9px 2px;background:none;border:none;color:var(--muted);font-family:'Source Sans 3',sans-serif;font-size:.62rem;font-weight:700;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tab.on{color:var(--gold);border-bottom-color:var(--gold)}
 .tc{display:none;flex:1;overflow-y:auto;flex-direction:column}
 .tc.on{display:flex}
