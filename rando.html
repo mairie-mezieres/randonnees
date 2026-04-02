@@ -166,20 +166,14 @@ html,body{height:100%;overflow:hidden;font-family:'Source Sans 3',sans-serif}
 .chem-tt{background:#1a2f1c!important;border:1px solid rgba(201,168,76,.3)!important;color:#f0ead8!important;font-family:'Source Sans 3',sans-serif!important;font-size:.72rem!important;padding:3px 8px!important;border-radius:5px!important}
 .leaflet-tooltip.chem-tt::before{display:none!important}
 
-/* Mobile */
-.mtog{display:none;position:fixed;bottom:18px;right:18px;z-index:900;background:var(--panel);border:1px solid var(--gold);border-radius:24px;color:var(--gold);font-family:'Source Sans 3',sans-serif;font-size:.78rem;font-weight:700;padding:9px 16px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.45)}
-.mob-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000}
-.mob-bg.open{display:block}
-.mob-drawer{display:none;position:fixed;bottom:0;left:0;right:0;max-height:82dvh;background:var(--panel);border-radius:20px 20px 0 0;z-index:1100;overflow-y:auto;padding:0 0 24px}
-.mob-drawer.open{display:block}
-.mob-handle{width:38px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:12px auto 10px}
-.mob-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 8px}
-.mob-tabs .tab{font-size:.65rem}
+/* Bouton toggle sidebar */
+.side-toggle{position:absolute;top:50%;left:310px;transform:translateY(-50%);z-index:900;background:var(--panel);border:1px solid var(--border);border-left:none;border-radius:0 8px 8px 0;color:var(--gold);font-size:.85rem;width:18px;height:48px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:2px 0 8px rgba(0,0,0,.3);transition:all .2s;padding:0;line-height:1}
+.side-toggle:hover{background:#243c27}
 
-@media(max-width:640px){
+@media(max-width:600px){
   .side{display:none}
-  .mtog{display:flex}
-  .map-toggles{top:auto;bottom:90px}
+  .side-toggle{display:none}
+  .map-toggles{top:auto;bottom:70px}
   .leg{display:none}
 }
 </style>
@@ -203,7 +197,6 @@ html,body{height:100%;overflow:hidden;font-family:'Source Sans 3',sans-serif}
     <div class="tabs">
       <button class="tab on" onclick="doTab('circuits',this)">🥾 Circuits</button>
       <button class="tab"    onclick="doTab('reseau',this)">🗺️ Réseau</button>
-      <button class="tab"    onclick="doTab('pois',this)">📍 Lieux</button>
       <button class="tab"    onclick="doTab('infos',this)">ℹ️ Infos</button>
     </div>
 
@@ -310,14 +303,6 @@ html,body{height:100%;overflow:hidden;font-family:'Source Sans 3',sans-serif}
       </div>
     </div>
 
-    <!-- LIEUX -->
-    <div class="tc" id="tc-pois">
-      <div class="poi" onclick="goTo(47.818096,1.801526,0)"><div class="pi">▶</div><div><div class="pn">Parking des randonneurs</div><div class="pc">Point de départ · Sortie du Bourg</div></div></div>
-      <div class="poi" onclick="goTo(47.817738,1.796344,1)"><div class="pi">⛰️</div><div><div class="pn">Butte des Élus</div><div class="pc">Tumulus gaulois classé 1924 · Vue panoramique</div></div></div>
-      <div class="poi" onclick="goTo(47.816134,1.804313,2)"><div class="pi">🏰</div><div><div class="pn">Château de Mézières</div><div class="pc">XVIIe s. · Style néo-Louis XIII</div></div></div>
-      <div class="poi" onclick="goTo(47.818313,1.802816,3)"><div class="pi">⛪</div><div><div class="pn">Église Saint-Avit</div><div class="pc">XVe s. · Reconstruite en 1891</div></div></div>
-      <div class="poi" onclick="goTo(47.832896,1.816839,4)"><div class="pi">🍷</div><div><div class="pn">Vignes AOC Orléans-Cléry</div><div class="pc">Cabernet Franc · Vignerons indépendants</div></div></div>
-    </div>
 
     <!-- INFOS -->
     <div class="tc" id="tc-infos">
@@ -327,6 +312,9 @@ html,body{height:100%;overflow:hidden;font-family:'Source Sans 3',sans-serif}
       <div class="ib"><h3>📞 Mairie</h3><p>36 rue du bourg — 45370<br>02 38 45 61 76 · Lun 14h-17h30 · Ven 8h30-11h30</p></div>
     </div>
   </div>
+
+  <!-- Bouton toggle sidebar -->
+  <button class="side-toggle" id="side-toggle" onclick="toggleSide()" title="Masquer/afficher le panneau">‹</button>
 
   <!-- MAP -->
   <div class="map-wrap">
@@ -353,37 +341,6 @@ html,body{height:100%;overflow:hidden;font-family:'Source Sans 3',sans-serif}
     </button>
   </div>
 </div>
-</div>
-
-<button class="mtog" id="mtog" onclick="toggleDrawer()">📋 Circuits</button>
-<div class="mob-bg" id="mob-bg" onclick="closeDrawer()"></div>
-<div class="mob-drawer" id="mob-drawer">
-  <div class="mob-handle"></div>
-  <div class="mob-tabs">
-    <button class="tab on" id="mbt-circuits" onclick="mobTab('circuits',this)">🥾 Circuits</button>
-    <button class="tab"    id="mbt-reseau"   onclick="mobTab('reseau',this)">🗺️ Réseau</button>
-    <button class="tab"    id="mbt-pois"     onclick="mobTab('pois',this)">📍 Lieux</button>
-    <button class="tab"    id="mbt-infos"    onclick="mobTab('infos',this)">ℹ️ Infos</button>
-  </div>
-  <div style="padding:8px 10px 20px">
-    <div id="mbt-tc-circuits">
-      <button class="showall" onclick="showAll();closeDrawer()">🗺️ Tous les circuits</button>
-      <div id="mob-circuit-list"></div>
-    </div>
-    <div id="mbt-tc-reseau" style="display:none"><div style="padding:8px;font-size:.75rem;color:var(--muted)">Ouvrez la version desktop pour accéder au générateur de parcours.</div></div>
-    <div id="mbt-tc-pois" style="display:none">
-      <div class="poi" onclick="goTo(47.818096,1.801526,0);closeDrawer()"><div class="pi">▶</div><div><div class="pn">Parking des randonneurs</div></div></div>
-      <div class="poi" onclick="goTo(47.817738,1.796344,1);closeDrawer()"><div class="pi">⛰️</div><div><div class="pn">Butte des Élus</div></div></div>
-      <div class="poi" onclick="goTo(47.816134,1.804313,2);closeDrawer()"><div class="pi">🏰</div><div><div class="pn">Château de Mézières</div></div></div>
-      <div class="poi" onclick="goTo(47.818313,1.802816,3);closeDrawer()"><div class="pi">⛪</div><div><div class="pn">Église Saint-Avit</div></div></div>
-      <div class="poi" onclick="goTo(47.832896,1.816839,4);closeDrawer()"><div class="pi">🍷</div><div><div class="pn">Vignes AOC</div></div></div>
-    </div>
-    <div id="mbt-tc-infos" style="display:none">
-      <div class="ib"><h3>🥾 Conseils</h3><p>Chaussures adaptées. Chemins glissants par temps humide.</p></div>
-      <div class="ib"><h3>🚌 Rémi L8</h3><p>Arrêts Mairie et Le Bréau · ~30 min depuis Orléans</p></div>
-      <div class="ib"><h3>📞 Mairie</h3><p>02 38 45 61 76 · Lun 14h-17h30 · Ven 8h30-11h30</p></div>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -753,7 +710,6 @@ function buildList(){
     </div>`;
   }).join('');
   document.getElementById('circuit-list').innerHTML=html;
-  document.getElementById('mob-circuit-list').innerHTML=html;
 }
 
 function selectTrack(id){
@@ -766,7 +722,6 @@ function selectTrack(id){
   document.getElementById(`det-${id}`)?.classList.add('on');
   buildLegend();
   zoomTrack(id);
-  if(window.innerWidth<=640)closeDrawer();
 }
 
 function zoomTrack(id){map.fitBounds(layers[id].getBounds(),{padding:[30,30]});}
@@ -867,29 +822,22 @@ function doTab(n, btn){
   }
 }
 
-function mobTab(n,btn){
-  ['circuits','reseau','pois','infos'].forEach(id=>{
-    document.getElementById('mbt-tc-'+id).style.display=(id===n)?'block':'none';
-    document.getElementById('mbt-'+id)?.classList.toggle('on',id===n);
-  });
-  if(n==='reseau') loadOSM();
-}
+function mobTab(n,btn){} // plus utilisé
 
 // ══════════════════════════════════════════════════════════
-// DRAWER MOBILE
+// TOGGLE SIDEBAR
 // ══════════════════════════════════════════════════════════
-function toggleDrawer(){
-  const dr=document.getElementById('mob-drawer');
-  const bg=document.getElementById('mob-bg');
-  const tog=document.getElementById('mtog');
-  const open=dr.classList.toggle('open');
-  bg.classList.toggle('open',open);
-  tog.textContent=open?'🗺️ Carte':'📋 Circuits';
-}
-function closeDrawer(){
-  document.getElementById('mob-drawer').classList.remove('open');
-  document.getElementById('mob-bg').classList.remove('open');
-  document.getElementById('mtog').textContent='📋 Circuits';
+let sideVisible = true;
+function toggleSide(){
+  const side = document.getElementById('side');
+  const btn  = document.getElementById('side-toggle');
+  sideVisible = !sideVisible;
+  side.style.display = sideVisible ? '' : 'none';
+  btn.textContent = sideVisible ? '‹' : '›';
+  // Repositionner le bouton
+  btn.style.left = sideVisible ? '310px' : '0';
+  // Forcer Leaflet à recalculer la taille
+  setTimeout(()=>map.invalidateSize(), 250);
 }
 
 function goTo(lat,lng,i){map.setView([lat,lng],16);marks[i].openPopup();}
