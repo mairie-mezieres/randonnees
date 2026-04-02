@@ -1,0 +1,179 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            1.808378,
+            47.828859
+          ],
+          [
+            1.80679,
+            47.83071
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {},
+      "id": "S7UE1"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            1.805172,
+            47.832049
+          ],
+          [
+            1.804264,
+            47.832328
+          ],
+          [
+            1.803345,
+            47.832786
+          ],
+          [
+            1.803066,
+            47.83307
+          ],
+          [
+            1.802706,
+            47.833335
+          ],
+          [
+            1.801736,
+            47.833765
+          ],
+          [
+            1.801634,
+            47.83378
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "_umap_options": {
+          "route": {
+            "profile": "foot-walking",
+            "preference": "recommended",
+            "elevation": false,
+            "coordinates": [
+              [
+                1.80517,
+                47.832042
+              ],
+              [
+                1.80164,
+                47.8338
+              ]
+            ]
+          }
+        }
+      },
+      "id": "J2F4h"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            1.788891,
+            47.815956
+          ],
+          [
+            1.786587,
+            47.81483
+          ],
+          [
+            1.786591,
+            47.814823
+          ],
+          [
+            1.784402,
+            47.818458
+          ],
+          [
+            1.784425,
+            47.818464
+          ],
+          [
+            1.78611,
+            47.818921
+          ],
+          [
+            1.786111,
+            47.818927
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "_umap_options": {
+          "route": {
+            "profile": "foot-walking",
+            "preference": "recommended",
+            "elevation": false,
+            "coordinates": [
+              [
+                1.788905,
+                47.815943
+              ],
+              [
+                1.786577,
+                47.814819
+              ],
+              [
+                1.78442,
+                47.818472
+              ],
+              [
+                1.786137,
+                47.818925
+              ]
+            ]
+          }
+        }
+      },
+      "id": "zrwdF"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          [
+            1.788473,
+            47.821848
+          ],
+          [
+            1.787941,
+            47.82364
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "_umap_options": {
+          "route": {
+            "profile": "foot-walking",
+            "preference": "recommended",
+            "elevation": false,
+            "coordinates": [
+              [
+                1.788486,
+                47.82185
+              ],
+              [
+                1.78795,
+                47.823644
+              ]
+            ]
+          }
+        }
+      },
+      "id": "XMZ41"
+    }
+  ]
+}
