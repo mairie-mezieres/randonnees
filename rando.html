@@ -397,14 +397,27 @@ const marks = POIS.map((p,i) =>
    .bindPopup(`<div class="pt">${p.ico} ${p.name}</div><div class="pb">${p.desc}</div>`)
 );
 
+// ── Variables globales — déclarées AVANT tout usage ──────────
+const layers = {};
+let activeId   = null;
+let genLayer   = null;
+let genCoords  = null;
+let genMode    = 'pied';
+let departMode = 'parking';
+let departCoords = [47.818096, 1.801526];
+let departMarker = null;
+let pickingDepart = false;
+let netReady   = false;
+let gpsWatchId = null;
+let userMarker = null;
+let userAccuracy = null;
+let sideOpen   = true;
+
 // Légende
 const legCtrl = L.control({position:'bottomright'});
 legCtrl.onAdd = () => { const d=L.DomUtil.create('div','leg'); d.id='legend'; buildLegend(d); return d; };
 legCtrl.addTo(map);
 
-// Circuits
-const layers = {};
-let activeId=null, genLayer=null, genCoords=null;
 const circuitGroup = L.layerGroup().addTo(map);
 
 TRACKS.forEach(t => {
@@ -426,11 +439,14 @@ const netStyles  = {
 
 // Données GeoJSON chargées (pour le routage)
 let geoData = {route:[], terre:[], afr:[]};
-let netReady = false;
 
-async function loadReseau() {
+async function loadReseau(isRetry = false) {
   const st = document.getElementById('net-status');
   const cards = document.getElementById('lyr-cards');
+  if (!st) return;
+
+  st.className = 'net-status';
+  st.innerHTML = '<span class="spin"></span> ' + (isRetry ? 'Nouvelle tentative…' : 'Chargement des voies…');
 
   try {
     const [routesR, terresR, afrR] = await Promise.all([
@@ -439,11 +455,18 @@ async function loadReseau() {
       fetch('./data/afr.geojson')
     ]);
 
-    if (!routesR.ok || !terresR.ok || !afrR.ok) throw new Error('Fichier GeoJSON introuvable');
+    if (!routesR.ok || !terresR.ok || !afrR.ok) {
+      const codes = [routesR.status, terresR.status, afrR.status].join('/');
+      throw new Error(`HTTP ${codes}`);
+    }
 
     const [routes, terres, afr] = await Promise.all([
       routesR.json(), terresR.json(), afrR.json()
     ]);
+
+    // Vider les groupes si retry
+    Object.values(netGroups).forEach(g => g.clearLayers());
+    geoData = {route:[], terre:[], afr:[]};
 
     let totalSegs = 0;
 
@@ -452,30 +475,19 @@ async function loadReseau() {
       feats.forEach(f => {
         const geom = f.geometry || f;
         if (!geom) return;
-        let coords = [];
-        if (geom.type === 'LineString') {
-          coords = geom.coordinates.map(c => [c[1],c[0]]);
-        } else if (geom.type === 'MultiLineString') {
-          geom.coordinates.forEach(line => {
-            const c = line.map(pt => [pt[1],pt[0]]);
-            if (c.length >= 2) {
-              const pl = L.polyline(c, {...netStyles[type]});
-              const name = f.properties?.name || f.properties?.nom || null;
-              if (name) pl.bindTooltip(name, {sticky:true, className:'chem-tt'});
-              netGroups[type].addLayer(pl);
-              geoData[type].push(c);
-              totalSegs++;
-            }
-          });
-          return;
-        }
-        if (coords.length >= 2) {
+        const name = f.properties?.name || f.properties?.nom || null;
+        const addLine = coords => {
+          if (coords.length < 2) return;
           const pl = L.polyline(coords, {...netStyles[type]});
-          const name = f.properties?.name || f.properties?.nom || null;
           if (name) pl.bindTooltip(name, {sticky:true, className:'chem-tt'});
           netGroups[type].addLayer(pl);
           geoData[type].push(coords);
           totalSegs++;
+        };
+        if (geom.type === 'LineString') {
+          addLine(geom.coordinates.map(c => [c[1],c[0]]));
+        } else if (geom.type === 'MultiLineString') {
+          geom.coordinates.forEach(line => addLine(line.map(pt => [pt[1],pt[0]])));
         }
       });
     };
@@ -484,17 +496,28 @@ async function loadReseau() {
     addGeo(terres, 'terre');
     addGeo(afr,    'afr');
 
-    Object.entries(netGroups).forEach(([k,g]) => { if(netVisible[k]) g.addTo(map); });
+    // Ajouter à la carte si onglet réseau actif
+    const reseauActive = document.getElementById('tc-reseau')?.classList.contains('on');
+    if (reseauActive) {
+      Object.entries(netGroups).forEach(([k,g]) => { if(netVisible[k]) g.addTo(map); });
+    }
     netReady = true;
 
     st.className = 'net-status ok';
     st.textContent = `✓ ${totalSegs} tronçons chargés`;
-    cards.style.display = 'flex';
+    if (cards) cards.style.display = 'flex';
 
   } catch(e) {
     st.className = 'net-status err';
-    st.innerHTML = `⚠️ GeoJSON introuvable<br><small>Vérifiez que les fichiers sont dans <code>data/</code></small>`;
-    cards.style.display = 'flex'; // Afficher quand même les toggles
+    st.innerHTML = `⚠️ Chargement échoué (${e.message})<br>
+      <button onclick="loadReseau(true)" style="margin-top:6px;background:rgba(234,88,12,.12);border:1px solid rgba(234,88,12,.3);border-radius:5px;color:#b54300;font-size:.68rem;font-weight:700;padding:4px 10px;cursor:pointer;font-family:inherit">↻ Réessayer</button>`;
+    if (cards) cards.style.display = 'flex';
+    netReady = false;
+
+    // Retry automatique une seule fois après 3s
+    if (!isRetry) {
+      setTimeout(() => loadReseau(true), 3000);
+    }
   }
 }
 
@@ -509,12 +532,6 @@ function toggleLayer(type) {
 // ══════════════════════════════════════════════════════════
 // GÉNÉRATEUR DE PARCOURS ALGORITHMIQUE
 // ══════════════════════════════════════════════════════════
-let genMode = 'pied';
-let departMode = 'parking';
-let departCoords = [47.818096, 1.801526];
-let departMarker = null;
-let pickingDepart = false;
-
 function selMode(el) {
   document.querySelectorAll('.gen-mode').forEach(e => e.classList.remove('sel'));
   el.classList.add('sel');
@@ -860,8 +877,6 @@ function downloadGPX(id) {
 // ══════════════════════════════════════════════════════════
 // GPS
 // ══════════════════════════════════════════════════════════
-let gpsWatchId=null, userMarker=null, userAccuracy=null;
-
 function toggleGps() {
   const btn = document.getElementById('gpsfab');
   btn.classList.remove('blink');
@@ -919,7 +934,6 @@ function doTab(n, btn) {
 // ══════════════════════════════════════════════════════════
 // TOGGLE SIDEBAR
 // ══════════════════════════════════════════════════════════
-let sideOpen = true;
 function toggleSide() {
   sideOpen = !sideOpen;
   const side = document.getElementById('side');
