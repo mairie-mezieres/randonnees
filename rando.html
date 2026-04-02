@@ -11,7 +11,6 @@
 <style>
 :root{
   --panel:#1a2f1c;
-  --panel2:#162818;
   --leaf:#6b9e5e;
   --gold:#c9a84c;
   --gold2:#e8c97a;
@@ -22,67 +21,33 @@
   --terre:#22c55e;
   --afr:#f97316;
   --ia:#a78bfa;
-  --r:12px;
-  --sh:0 6px 24px rgba(0,0,0,.3);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;font-family:'Source Sans 3',sans-serif}
+.wrap{display:flex;flex-direction:column;height:100dvh}
 
-/* ── WRAP ── */
-.wrap{display:flex;flex-direction:column;height:100dvh;background:#1a2f1c}
-
-/* ── HEADER ── */
-.hd{
-  background:var(--panel);
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 18px;flex-shrink:0;z-index:800
-}
+/* HEADER */
+.hd{background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:10px 18px;flex-shrink:0;z-index:800}
 .hs{font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:700}
 .ht{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--gold);line-height:1.1}
-.hr{text-align:right}
 
-/* ── BODY ── */
+/* BODY */
 .body{flex:1;display:flex;overflow:hidden}
 
-/* ── SIDEBAR ── */
-.side{
-  width:290px;flex-shrink:0;
-  background:var(--panel);
-  display:flex;flex-direction:column;
-  border-right:1px solid var(--border);
-  overflow:hidden
-}
+/* SIDEBAR */
+.side{width:290px;flex-shrink:0;background:var(--panel);display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
 .tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
-.tab{
-  flex:1;padding:10px 4px;
-  background:none;border:none;
-  color:var(--muted);font-family:'Source Sans 3',sans-serif;
-  font-size:.72rem;font-weight:700;
-  cursor:pointer;border-bottom:2px solid transparent;
-  transition:all .2s;white-space:nowrap
-}
+.tab{flex:1;padding:10px 3px;background:none;border:none;color:var(--muted);font-family:'Source Sans 3',sans-serif;font-size:.68rem;font-weight:700;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
 .tab.on{color:var(--gold);border-bottom-color:var(--gold)}
-.tab:hover:not(.on){color:var(--text)}
-.tc{display:none;flex:1;overflow-y:auto}
-.tc.on{display:flex;flex-direction:column}
+.tc{display:none;flex:1;overflow-y:auto;flex-direction:column}
+.tc.on{display:flex}
 .tc::-webkit-scrollbar{width:3px}
 .tc::-webkit-scrollbar-thumb{background:var(--border)}
 
-/* ── CIRCUITS ── */
-.showall{
-  margin:10px;border-radius:8px;
-  background:rgba(201,168,76,.12);border:1px solid var(--border);
-  color:var(--gold);font-family:'Source Sans 3',sans-serif;
-  font-size:.75rem;font-weight:700;padding:8px;cursor:pointer
-}
+/* CIRCUITS */
+.showall{margin:10px;border-radius:8px;background:rgba(201,168,76,.12);border:1px solid var(--border);color:var(--gold);font-family:'Source Sans 3',sans-serif;font-size:.75rem;font-weight:700;padding:8px;cursor:pointer}
 .showall:hover{background:rgba(201,168,76,.2)}
-.card{
-  margin:0 10px 4px;padding:10px 10px 10px 0;
-  border-bottom:1px solid rgba(255,255,255,.05);
-  display:flex;align-items:center;gap:10px;cursor:pointer;
-  border-radius:6px;transition:background .15s
-}
+.card{margin:0 10px 4px;padding:10px 10px 10px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:10px;cursor:pointer;border-radius:6px;transition:background .15s}
 .card:hover,.card.on{background:rgba(255,255,255,.05)}
 .cbar{width:4px;height:36px;border-radius:3px;flex-shrink:0}
 .cinfo{flex:1;min-width:0}
@@ -96,669 +61,587 @@ html,body{height:100%;overflow:hidden;font-family:'Source Sans 3',sans-serif}
 .ds{font-size:.7rem;color:var(--muted)}
 .ddesc{font-size:.73rem;color:var(--muted);margin-bottom:10px;line-height:1.5}
 .dbtns{display:flex;flex-wrap:wrap;gap:5px}
-.dbtn{
-  flex:1;min-width:calc(50% - 3px);
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
-  border-radius:7px;color:var(--text);font-family:'Source Sans 3',sans-serif;
-  font-size:.68rem;font-weight:600;padding:6px 4px;cursor:pointer;transition:background .15s
-}
+.dbtn{flex:1;min-width:calc(50% - 3px);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--text);font-family:'Source Sans 3',sans-serif;font-size:.68rem;font-weight:600;padding:6px 4px;cursor:pointer;transition:background .15s}
 .dbtn.prim{color:#fff}
 .dbtn:hover{background:rgba(255,255,255,.13)}
 
-/* ── POI ── */
-.poi{
-  display:flex;align-items:center;gap:10px;
-  padding:10px;margin:0 6px;border-radius:8px;
-  cursor:pointer;transition:background .15s
-}
+/* POIS */
+.poi{display:flex;align-items:center;gap:10px;padding:10px;margin:0 6px;border-radius:8px;cursor:pointer;transition:background .15s}
 .poi:hover{background:rgba(255,255,255,.05)}
 .pi{font-size:1.2rem;width:28px;text-align:center;flex-shrink:0}
 .pn{font-size:.8rem;font-weight:600;color:var(--text)}
 .pc{font-size:.68rem;color:var(--muted);margin-top:1px}
 
-/* ── INFO ── */
+/* INFOS */
 .ib{margin:8px 10px;background:rgba(255,255,255,.04);border-radius:8px;padding:10px}
 .ib h3{font-size:.75rem;font-weight:700;color:var(--gold);margin-bottom:5px}
 .ib p,.ib .hl{font-size:.73rem;color:var(--muted);line-height:1.5}
 
-/* ══════════════════════════════════
-   RÉSEAU DE CHEMINS
-══════════════════════════════════ */
-.tc-reseau{padding:10px}
+/* RÉSEAU */
+.tc-reseau-inner{padding:10px;display:flex;flex-direction:column;gap:10px}
+.sec-title{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700;padding-left:2px}
 
-/* Layer toggles */
-.lyr-section{margin-bottom:14px}
-.lyr-title{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700;margin-bottom:7px;padding-left:2px}
-.lyr-card{
-  display:flex;align-items:center;gap:10px;
-  background:rgba(255,255,255,.04);border:1px solid var(--border);
-  border-radius:9px;padding:10px 12px;
-  margin-bottom:6px;cursor:pointer;
-  transition:all .2s;user-select:none
-}
+/* Loader OSM */
+.osm-loader{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--muted);background:rgba(255,255,255,.04);border-radius:8px;padding:10px}
+.osm-ok{color:#22c55e;font-size:.72rem;background:rgba(34,197,94,.08);border-radius:8px;padding:8px 10px}
+.osm-err{color:rgba(249,115,22,.85);font-size:.7rem;background:rgba(249,115,22,.08);border-radius:8px;padding:8px 10px;line-height:1.5}
+
+/* Layer cards */
+.lyr-card{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;padding:10px 12px;cursor:pointer;transition:all .2s;user-select:none}
 .lyr-card:hover{background:rgba(255,255,255,.08)}
-.lyr-card.off{opacity:.4}
+.lyr-card.off{opacity:.38}
 .lyr-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.lyr-info{flex:1}
 .lyr-name{font-size:.8rem;font-weight:600;color:var(--text)}
-.lyr-desc{font-size:.68rem;color:var(--muted);margin-top:1px}
-.lyr-sw{
-  width:32px;height:18px;
-  background:rgba(255,255,255,.1);border-radius:9px;
-  position:relative;transition:background .2s;flex-shrink:0
-}
-.lyr-sw::after{
-  content:'';position:absolute;top:2px;left:2px;
-  width:14px;height:14px;background:#fff;border-radius:50%;
-  transition:transform .2s
-}
+.lyr-desc{font-size:.67rem;color:var(--muted);margin-top:1px}
+.lyr-sw{width:32px;height:18px;background:rgba(255,255,255,.1);border-radius:9px;position:relative;transition:background .2s;flex-shrink:0;margin-left:auto}
+.lyr-sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
 .lyr-card:not(.off) .lyr-sw{background:var(--gold)}
 .lyr-card:not(.off) .lyr-sw::after{transform:translateX(14px)}
 
-/* OSM loader */
-.osm-loader{
-  display:flex;align-items:center;gap:8px;
-  font-size:.72rem;color:var(--muted);
-  background:rgba(255,255,255,.04);border-radius:8px;
-  padding:10px;margin-bottom:8px
-}
-.osm-loader .spin{width:12px;height:12px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
-.osm-done{color:#22c55e}
+.afr-note{background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.25);border-radius:8px;padding:9px 10px;font-size:.7rem;color:rgba(249,115,22,.9);line-height:1.5}
 
-/* AFR note */
-.afr-note{
-  background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.25);
-  border-radius:8px;padding:9px 10px;
-  font-size:.7rem;color:rgba(249,115,22,.9);line-height:1.5;
-  margin-bottom:14px
-}
-
-/* ══════════════════════════════════
-   IA PARCOURS
-══════════════════════════════════ */
-.ia-wrap{background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(201,168,76,.06));border:1px solid rgba(167,139,250,.25);border-radius:10px;padding:12px}
-.ia-hdr{display:flex;align-items:center;gap:7px;margin-bottom:12px}
+/* IA */
+.ia-card{background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(201,168,76,.06));border:1px solid rgba(167,139,250,.25);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:9px}
+.ia-hdr{display:flex;align-items:center;gap:7px}
 .ia-badge{background:var(--ia);color:#fff;font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:20px}
 .ia-htitle{font-size:.82rem;font-weight:700;color:var(--text)}
-.ia-field{margin-bottom:9px}
 .ia-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:4px}
-.ia-sel,.ia-input{
-  width:100%;background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.1);border-radius:7px;
-  color:var(--text);padding:7px 9px;
-  font-family:'Source Sans 3',sans-serif;font-size:.78rem;outline:none
-}
-.ia-sel:focus,.ia-input:focus{border-color:var(--ia)}
+.ia-sel{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:var(--text);padding:7px 9px;font-family:'Source Sans 3',sans-serif;font-size:.78rem;outline:none}
+.ia-sel:focus{border-color:var(--ia)}
 .ia-sel option{background:#1a2f1c}
 .ia-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
-.ia-mode{
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-  border-radius:7px;padding:6px 3px;
-  text-align:center;font-size:.68rem;color:var(--muted);
-  cursor:pointer;transition:all .15s
-}
+.ia-mode{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:6px 3px;text-align:center;font-size:.68rem;color:var(--muted);cursor:pointer;transition:all .15s}
 .ia-mode .em{display:block;font-size:1rem;margin-bottom:1px}
 .ia-mode.sel{background:rgba(167,139,250,.15);border-color:var(--ia);color:var(--text)}
-.ia-btn{
-  width:100%;margin-top:2px;
-  background:linear-gradient(135deg,var(--ia),#7c3aed);
-  border:none;border-radius:8px;
-  color:#fff;font-family:'Playfair Display',serif;
-  font-size:.85rem;font-weight:600;padding:9px;
-  cursor:pointer;transition:opacity .2s
-}
+.ia-btn{width:100%;background:linear-gradient(135deg,var(--ia),#7c3aed);border:none;border-radius:8px;color:#fff;font-family:'Playfair Display',serif;font-size:.85rem;font-weight:600;padding:9px;cursor:pointer;transition:opacity .2s}
 .ia-btn:hover{opacity:.88}
 .ia-btn:disabled{opacity:.45;cursor:not-allowed}
-
-/* Résultat IA */
-.ia-result{
-  display:none;margin-top:8px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(167,139,250,.2);
-  border-radius:9px;padding:11px;font-size:.75rem;color:var(--text)
-}
+.ia-result{display:none;background:rgba(255,255,255,.04);border:1px solid rgba(167,139,250,.2);border-radius:9px;padding:11px;font-size:.75rem;color:var(--text)}
 .ia-result.show{display:block}
-.ia-rtitle{font-weight:700;color:var(--ia);margin-bottom:5px;display:flex;align-items:center;gap:5px;font-size:.8rem}
+.ia-rtitle{font-weight:700;color:var(--ia);margin-bottom:5px;font-size:.8rem}
 .ia-rbody{color:var(--muted);line-height:1.6;margin-bottom:6px}
-.ia-rlegend{display:none;align-items:center;gap:6px;font-size:.68rem;color:var(--ia);font-weight:600;margin-bottom:5px}
-.ia-rlegend .line{width:22px;height:3px;background:var(--ia);border-radius:2px}
+.ia-rleg{display:none;align-items:center;gap:6px;font-size:.68rem;color:var(--ia);font-weight:600;margin-bottom:5px}
+.ia-rleg .ln{width:22px;height:3px;background:var(--ia);border-radius:2px}
 .ia-rclear{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:var(--muted);font-size:.68rem;padding:3px 9px;cursor:pointer;font-family:'Source Sans 3',sans-serif}
 
-/* ── MAP ── */
-#map{flex:1;background:#e8e0d0}
+/* MAP wrapper */
+.map-wrap{position:relative;flex:1;overflow:hidden}
+#map{position:absolute;inset:0}
 
-/* ── TOGGLES FLOTTANTS SUR CARTE ── */
-.map-toggles{
-  position:absolute;top:10px;right:10px;
-  z-index:700;display:flex;flex-direction:column;gap:5px
-}
-.mt-btn{
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:8px;color:var(--text);
-  font-family:'Source Sans 3',sans-serif;font-size:.7rem;font-weight:600;
-  padding:5px 10px;cursor:pointer;
-  display:flex;align-items:center;gap:6px;
-  box-shadow:0 2px 10px rgba(0,0,0,.3);
-  transition:all .15s;white-space:nowrap
-}
+/* Toggles flottants */
+.map-toggles{position:absolute;top:10px;right:10px;z-index:700;display:none;flex-direction:column;gap:5px}
+.mt-btn{background:rgba(26,47,28,.92);backdrop-filter:blur(4px);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Source Sans 3',sans-serif;font-size:.7rem;font-weight:600;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:all .15s;white-space:nowrap}
 .mt-btn .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.mt-btn.off{opacity:.5}
-.mt-btn:hover{background:#243c27}
+.mt-btn.off{opacity:.45}
+.mt-btn:hover:not(.off){background:rgba(36,60,39,.95)}
 
-/* ── LEGEND ── */
-.leg{
-  position:absolute;bottom:24px;right:10px;
-  z-index:600;background:var(--panel);
-  border:1px solid var(--border);border-radius:9px;
-  padding:9px 12px;min-width:150px;
-  box-shadow:var(--sh)
-}
-.leg h4{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:7px}
-.li{
-  display:flex;align-items:center;gap:7px;
-  font-size:.7rem;color:var(--text);
-  padding:2px 0;cursor:pointer;
-  border-radius:4px;padding:3px 4px;
-  transition:background .15s
-}
+/* Légende */
+.leg{position:absolute;bottom:24px;right:10px;z-index:600;background:rgba(26,47,28,.92);backdrop-filter:blur(4px);border:1px solid var(--border);border-radius:9px;padding:9px 12px;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.leg h4{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.li{display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--text);padding:3px 4px;cursor:pointer;border-radius:4px;transition:background .15s}
 .li:hover{background:rgba(255,255,255,.06)}
 .li.on{font-weight:700;color:var(--gold2)}
 .ll{width:18px;height:3px;border-radius:2px;flex-shrink:0}
 
-/* ── GPS FAB ── */
-.gpsfab{
-  position:absolute;bottom:24px;left:10px;
-  z-index:600;background:var(--panel);
-  border:1px solid var(--border);border-radius:24px;
-  color:var(--text);font-family:'Source Sans 3',sans-serif;
-  font-size:.75rem;font-weight:600;padding:8px 14px;
-  display:flex;align-items:center;gap:7px;cursor:pointer;
-  box-shadow:var(--sh)
-}
+/* GPS */
+.gpsfab{position:absolute;bottom:24px;left:10px;z-index:600;background:rgba(26,47,28,.92);backdrop-filter:blur(4px);border:1px solid var(--border);border-radius:24px;color:var(--text);font-family:'Source Sans 3',sans-serif;font-size:.75rem;font-weight:600;padding:8px 14px;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 .gpsfab.on{border-color:var(--leaf);color:var(--leaf)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .blink{animation:pulse 1.5s ease-in-out 3}
 
-/* ── MOBILE FAB ── */
-.mtog{
-  display:none;position:fixed;bottom:18px;right:18px;z-index:900;
-  background:var(--panel);border:1px solid var(--gold);
-  border-radius:24px;color:var(--gold);
-  font-family:'Source Sans 3',sans-serif;font-size:.78rem;font-weight:700;
-  padding:9px 16px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.45)
-}
-/* ── DRAWER MOBILE ── */
-.mob-drawer-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000}
-.mob-drawer-bg.open{display:block}
-.mob-drawer{
-  display:none;position:fixed;
-  bottom:0;left:0;right:0;
-  max-height:82dvh;background:var(--panel);
-  border-radius:20px 20px 0 0;z-index:1100;
-  overflow-y:auto;padding:0 0 24px
-}
+/* Mobile */
+.mtog{display:none;position:fixed;bottom:18px;right:18px;z-index:900;background:var(--panel);border:1px solid var(--gold);border-radius:24px;color:var(--gold);font-family:'Source Sans 3',sans-serif;font-size:.78rem;font-weight:700;padding:9px 16px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.45)}
+.mob-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000}
+.mob-bg.open{display:block}
+.mob-drawer{display:none;position:fixed;bottom:0;left:0;right:0;max-height:82dvh;background:var(--panel);border-radius:20px 20px 0 0;z-index:1100;overflow-y:auto;padding:0 0 24px}
 .mob-drawer.open{display:block}
 .mob-handle{width:38px;height:4px;background:rgba(255,255,255,.18);border-radius:2px;margin:12px auto 10px}
-.mob-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 10px}
-.mob-tabs .tab{flex:1;font-size:.68rem}
+.mob-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 8px}
+.mob-tabs .tab{font-size:.65rem}
 
-/* ── ANIMATIONS ── */
+/* Animations */
 @keyframes spin{to{transform:rotate(360deg)}}
-.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:5px}
-.loading::after{content:'';animation:dots 1s infinite}
-@keyframes dots{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.25);border-top-color:var(--gold);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+.loading-txt::after{content:'';animation:ldots 1s infinite}
+@keyframes ldots{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
 
-/* ── LEAFLET TWEAKS ── */
-.leaflet-control-zoom{border:1px solid var(--border)!important;background:var(--panel)!important}
-.leaflet-control-zoom a{color:var(--text)!important;background:transparent!important}
-.leaflet-control-zoom a:hover{background:rgba(255,255,255,.08)!important}
-.chem-tt{background:var(--panel);border:1px solid rgba(201,168,76,.25);color:var(--text);font-family:'Source Sans 3',sans-serif;font-size:.73rem;padding:3px 7px;border-radius:5px}
+/* Leaflet */
+.leaflet-control-zoom{border:1px solid var(--border)!important;background:rgba(26,47,28,.9)!important}
+.leaflet-control-zoom a{color:var(--text)!important;background:transparent!important;border-bottom-color:var(--border)!important}
+.chem-tt{background:#1a2f1c!important;border:1px solid rgba(201,168,76,.3)!important;color:#f0ead8!important;font-family:'Source Sans 3',sans-serif!important;font-size:.72rem!important;padding:3px 8px!important;border-radius:5px!important}
+.leaflet-tooltip.chem-tt::before{display:none!important}
+.leaflet-popup-content{font-family:'Source Sans 3',sans-serif;font-size:.82rem}
 
-/* ── RESPONSIVE ── */
 @media(max-width:640px){
   .side{display:none}
   .mtog{display:flex}
-  .map-toggles{top:auto;bottom:90px;right:10px}
+  .map-toggles{top:auto;bottom:90px}
   .leg{display:none}
 }
-
-/* detail-mode scrolls to selected */
-#circuit-list.detail-mode .card:not(.on){opacity:.5}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- HEADER -->
-  <div class="hd">
-    <div>
-      <div class="hs">Commune de</div>
-      <div class="ht">Mézières-lez-Cléry <em>— À l'orée de la Sologne</em></div>
+<!-- HEADER -->
+<div class="hd">
+  <div>
+    <div class="hs">Commune de</div>
+    <div class="ht">Mézières-lez-Cléry <em>— À l'orée de la Sologne</em></div>
+  </div>
+  <div style="text-align:right">
+    <div class="hs">Randonnées pédestres</div>
+    <div style="font-size:.75rem;color:var(--muted)">14 circuits · 3 à 22 km</div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+  <!-- SIDEBAR -->
+  <div class="side">
+    <div class="tabs">
+      <button class="tab on" onclick="doTab('circuits',this)">🥾 Circuits</button>
+      <button class="tab"    onclick="doTab('pois',this)">📍 Lieux</button>
+      <button class="tab"    onclick="doTab('reseau',this)">🗺️ Réseau</button>
+      <button class="tab"    onclick="doTab('infos',this)">ℹ️ Infos</button>
     </div>
-    <div class="hr">
-      <div class="hs" style="text-align:right">Randonnées pédestres</div>
-      14 circuits · 3 à 22 km
+
+    <!-- CIRCUITS -->
+    <div class="tc on" id="tc-circuits">
+      <button class="showall" onclick="showAll()">🗺️ Afficher tous les circuits</button>
+      <div id="circuit-list"></div>
+    </div>
+
+    <!-- LIEUX -->
+    <div class="tc" id="tc-pois">
+      <div class="poi" onclick="goTo(47.8185,1.8095,0)"><div class="pi">▶</div><div><div class="pn">Parking des randonneurs</div><div class="pc">Point de départ · Sortie du Bourg</div></div></div>
+      <div class="poi" onclick="goTo(47.8145,1.802,1)"><div class="pi">⛰️</div><div><div class="pn">Butte des Élus</div><div class="pc">Tumulus gaulois classé 1924 · Vue panoramique</div></div></div>
+      <div class="poi" onclick="goTo(47.8218,1.805,2)"><div class="pi">🏰</div><div><div class="pn">Château de Mézières</div><div class="pc">XVIIe s. · Style néo-Louis XIII</div></div></div>
+      <div class="poi" onclick="goTo(47.8222,1.8078,3)"><div class="pi">⛪</div><div><div class="pn">Église Saint-Avit</div><div class="pc">XVe s. · Reconstruite en 1891</div></div></div>
+      <div class="poi" onclick="goTo(47.816,1.813,4)"><div class="pi">🍷</div><div><div class="pn">Vignes AOC Orléans-Cléry</div><div class="pc">Cabernet Franc · Vignerons indépendants</div></div></div>
+      <div class="poi" onclick="goTo(47.808,1.804,5)"><div class="pi">💧</div><div><div class="pn">Vallée aux Moines</div><div class="pc">Site naturel remarquable · Halimium protégé</div></div></div>
+    </div>
+
+    <!-- RÉSEAU -->
+    <div class="tc" id="tc-reseau">
+      <div class="tc-reseau-inner" id="reseau-content">
+
+        <div class="sec-title">Voies OpenStreetMap</div>
+
+        <div class="osm-loader" id="osm-loader">
+          <div class="spin"></div>
+          <span>Chargement des chemins…</span>
+        </div>
+        <div class="osm-ok" id="osm-ok" style="display:none"></div>
+        <div class="osm-err" id="osm-err" style="display:none"></div>
+
+        <div id="lyr-cards" style="display:none;display:flex;flex-direction:column;gap:6px">
+          <div class="lyr-card" id="lc-route" onclick="toggleLayer('route')">
+            <div class="lyr-dot" style="background:var(--route)"></div>
+            <div style="flex:1"><div class="lyr-name">Routes & rues</div><div class="lyr-desc">Revêtement dur · Voiture autorisée</div></div>
+            <div class="lyr-sw"></div>
+          </div>
+          <div class="lyr-card" id="lc-terre" onclick="toggleLayer('terre')">
+            <div class="lyr-dot" style="background:var(--terre)"></div>
+            <div style="flex:1"><div class="lyr-name">Chemins de terre</div><div class="lyr-desc">Communaux · Piétons & vélos</div></div>
+            <div class="lyr-sw"></div>
+          </div>
+          <div class="lyr-card" id="lc-afr" onclick="toggleLayer('afr')">
+            <div class="lyr-dot" style="background:var(--afr)"></div>
+            <div style="flex:1"><div class="lyr-name">Chemins AFR</div><div class="lyr-desc">Exploitation agricole · Vérifier accès</div></div>
+            <div class="lyr-sw"></div>
+          </div>
+        </div>
+
+        <div class="afr-note">⚠️ Les chemins AFR sont des voies agricoles privées. Se renseigner en mairie avant de les emprunter (02 38 45 61 76).</div>
+
+        <div class="sec-title">Générer un itinéraire IA</div>
+
+        <div class="ia-card">
+          <div class="ia-hdr">
+            <div class="ia-badge">✦ Mistral</div>
+            <div class="ia-htitle">Parcours sur mesure</div>
+          </div>
+
+          <div>
+            <div class="ia-label">Mode de déplacement</div>
+            <div class="ia-modes">
+              <div class="ia-mode sel" data-mode="pied" onclick="selMode(this)"><span class="em">🥾</span>À pied</div>
+              <div class="ia-mode" data-mode="velo" onclick="selMode(this)"><span class="em">🚴</span>Vélo</div>
+              <div class="ia-mode" data-mode="cheval" onclick="selMode(this)"><span class="em">🐴</span>Cheval</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="ia-label">Distance souhaitée</div>
+            <select class="ia-sel" id="ia-dist">
+              <option value="3">~3 km · 45 min</option>
+              <option value="5">~5 km · 1h15</option>
+              <option value="8" selected>~8 km · 2h</option>
+              <option value="12">~12 km · 3h</option>
+              <option value="15">~15 km · 3h45</option>
+              <option value="20">~20 km · 5h</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="ia-label">Ambiance</div>
+            <select class="ia-sel" id="ia-style">
+              <option value="nature">🌿 Nature & chemins de terre</option>
+              <option value="patrimoine">⛪ Patrimoine & bourg</option>
+              <option value="vignes">🍷 Vignes & campagne</option>
+              <option value="mixte">🗺️ Mixte & varié</option>
+            </select>
+          </div>
+
+          <button class="ia-btn" id="ia-btn" onclick="generateParcours()">✦ Créer mon parcours</button>
+
+          <div class="ia-result" id="ia-result">
+            <div class="ia-rtitle" id="ia-rtitle">Parcours généré</div>
+            <div class="ia-rbody" id="ia-rbody"></div>
+            <div class="ia-rleg" id="ia-rleg"><div class="ln"></div>Tracé violet sur la carte</div>
+            <button class="ia-rclear" onclick="clearParcours()">✕ Effacer le tracé</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- INFOS -->
+    <div class="tc" id="tc-infos">
+      <div class="ib"><h3>🥾 Conseils</h3><p>Chaussures adaptées recommandées. Chemins pouvant être glissants par temps humide. Emportez de l'eau pour les longs parcours.</p></div>
+      <div class="ib"><h3>🐾 Animaux</h3><p>Chiens admis en laisse. Respectez la faune locale.</p></div>
+      <div class="ib"><h3>🚌 Accès bus</h3><p>Rémi Ligne 8 — arrêts <strong>Mairie</strong> et <strong>Le Bréau</strong><br>Depuis Orléans : ~30 min</p></div>
+      <div class="ib"><h3>📞 Mairie</h3><p>36 rue du bourg — 45370<br>02 38 45 61 76 · Lun 14h-17h30 · Ven 8h30-11h30</p></div>
     </div>
   </div>
 
-  <!-- BODY -->
-  <div class="body">
+  <!-- MAP -->
+  <div class="map-wrap">
+    <div id="map"></div>
 
-    <!-- ═══ SIDEBAR ═══ -->
-    <div class="side" id="side">
-      <div class="tabs">
-        <button class="tab on"  onclick="tab('circuits',this)">🥾 Circuits</button>
-        <button class="tab"     onclick="tab('pois',this)">📍 Lieux</button>
-        <button class="tab"     onclick="tab('reseau',this)" id="tab-reseau">🗺️ Réseau</button>
-        <button class="tab"     onclick="tab('infos',this)">ℹ️ Infos</button>
-      </div>
-
-      <!-- CIRCUITS -->
-      <div class="tc on" id="tc-circuits">
-        <button class="showall" onclick="showAll()">🗺️ Afficher tous les circuits</button>
-        <div id="circuit-list"></div>
-      </div>
-
-      <!-- LIEUX -->
-      <div class="tc" id="tc-pois">
-        <div class="poi" onclick="goTo(47.8185,1.8095,0)"><div class="pi">▶</div><div><div class="pn">Parking des randonneurs</div><div class="pc">Point de départ · Sortie du Bourg</div></div></div>
-        <div class="poi" onclick="goTo(47.8145,1.802,1)"><div class="pi">⛰️</div><div><div class="pn">Butte des Élus</div><div class="pc">Tumulus gaulois classé 1924 · Vue panoramique</div></div></div>
-        <div class="poi" onclick="goTo(47.8218,1.805,2)"><div class="pi">🏰</div><div><div class="pn">Château de Mézières</div><div class="pc">XVIIe s. · Style néo-Louis XIII</div></div></div>
-        <div class="poi" onclick="goTo(47.8222,1.8078,3)"><div class="pi">⛪</div><div><div class="pn">Église Saint-Avit</div><div class="pc">XVe s. · Reconstruite en 1891</div></div></div>
-        <div class="poi" onclick="goTo(47.816,1.813,4)"><div class="pi">🍷</div><div><div class="pn">Vignes AOC Orléans-Cléry</div><div class="pc">Cabernet Franc · Vignerons indépendants</div></div></div>
-        <div class="poi" onclick="goTo(47.808,1.804,5)"><div class="pi">💧</div><div><div class="pn">Vallée aux Moines</div><div class="pc">Site naturel remarquable · Halimium protégé</div></div></div>
-      </div>
-
-      <!-- ═══ RÉSEAU DE CHEMINS ═══ -->
-      <div class="tc" id="tc-reseau">
-        <div class="tc-reseau">
-
-          <!-- Chargement OSM -->
-          <div class="osm-loader" id="osm-loader">
-            <div class="spin"></div>
-            <span>Chargement des chemins OSM…</span>
-          </div>
-
-          <!-- Couches -->
-          <div class="lyr-section" id="lyr-section" style="display:none">
-            <div class="lyr-title">Afficher les voies</div>
-
-            <div class="lyr-card" id="lc-route" onclick="toggleLayer('route')">
-              <div class="lyr-dot" style="background:var(--route)"></div>
-              <div class="lyr-info">
-                <div class="lyr-name">Routes & rues</div>
-                <div class="lyr-desc">Revêtement dur · Voiture autorisée</div>
-              </div>
-              <div class="lyr-sw"></div>
-            </div>
-
-            <div class="lyr-card" id="lc-terre" onclick="toggleLayer('terre')">
-              <div class="lyr-dot" style="background:var(--terre)"></div>
-              <div class="lyr-info">
-                <div class="lyr-name">Chemins de terre</div>
-                <div class="lyr-desc">Communaux · Piétons & vélos</div>
-              </div>
-              <div class="lyr-sw"></div>
-            </div>
-
-            <div class="lyr-card" id="lc-afr" onclick="toggleLayer('afr')">
-              <div class="lyr-dot" style="background:var(--afr)"></div>
-              <div class="lyr-info">
-                <div class="lyr-name">Chemins AFR</div>
-                <div class="lyr-desc">Exploitation agricole · Accès à vérifier</div>
-              </div>
-              <div class="lyr-sw"></div>
-            </div>
-
-            <div class="afr-note">
-              ⚠️ Les chemins AFR (Association Foncière de Remembrement) sont des voies agricoles privées. Se renseigner à la mairie avant de les emprunter.
-            </div>
-          </div>
-
-          <!-- IA Parcours -->
-          <div class="ia-wrap">
-            <div class="ia-hdr">
-              <div class="ia-badge">✦ IA</div>
-              <div class="ia-htitle">Générer un itinéraire</div>
-            </div>
-
-            <div class="ia-field">
-              <div class="ia-label">Mode</div>
-              <div class="ia-modes">
-                <div class="ia-mode sel" data-mode="pied" onclick="selMode(this)"><span class="em">🥾</span>À pied</div>
-                <div class="ia-mode" data-mode="velo" onclick="selMode(this)"><span class="em">🚴</span>Vélo</div>
-                <div class="ia-mode" data-mode="cheval" onclick="selMode(this)"><span class="em">🐴</span>Cheval</div>
-              </div>
-            </div>
-
-            <div class="ia-field">
-              <div class="ia-label">Distance</div>
-              <select class="ia-sel" id="ia-dist">
-                <option value="3">~3 km · 45 min</option>
-                <option value="5">~5 km · 1h15</option>
-                <option value="8" selected>~8 km · 2h</option>
-                <option value="12">~12 km · 3h</option>
-                <option value="15">~15 km · 3h45</option>
-                <option value="20">~20 km · 5h</option>
-              </select>
-            </div>
-
-            <div class="ia-field">
-              <div class="ia-label">Ambiance</div>
-              <select class="ia-sel" id="ia-style">
-                <option value="nature">🌿 Nature & chemins</option>
-                <option value="patrimoine">⛪ Patrimoine & bourg</option>
-                <option value="vignes">🍷 Vignes & campagne</option>
-                <option value="mixte">🗺️ Mixte & varié</option>
-              </select>
-            </div>
-
-            <button class="ia-btn" id="ia-btn" onclick="generateParcours()">✦ Créer mon parcours</button>
-
-            <div class="ia-result" id="ia-result">
-              <div class="ia-rtitle">✦ <span id="ia-rtitle-txt">Parcours</span></div>
-              <div class="ia-rbody" id="ia-rbody"></div>
-              <div class="ia-rlegend" id="ia-rlegend"><div class="line"></div>Tracé violet sur la carte</div>
-              <button class="ia-rclear" onclick="clearParcours()">✕ Effacer</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- INFOS -->
-      <div class="tc" id="tc-infos">
-        <div class="ib"><h3>🥾 Conseils</h3><p>Chaussures adaptées recommandées. Chemins glissants par temps humide. Emportez de l'eau pour les longs parcours.</p></div>
-        <div class="ib"><h3>🐾 Animaux</h3><p>Chiens admis en laisse. Respectez la faune locale.</p></div>
-        <div class="ib"><h3>🚌 Accès bus</h3><p>Rémi Ligne 8 — arrêts <strong>Mairie</strong> et <strong>Le Bréau</strong><br>Depuis Orléans : ~30 min</p></div>
-        <div class="ib"><h3>📞 Mairie</h3><p>36 rue du bourg — 45370<br>02 38 45 61 76<br>Lun 14h-17h30 · Ven 8h30-11h30</p>
-          <div class="hl">🌐 mezieres-lez-clery.fr</div>
-        </div>
-      </div>
-    </div><!-- /side -->
-
-    <!-- ═══ MAP ═══ -->
-    <div style="position:relative;flex:1;overflow:hidden">
-      <div id="map"></div>
-
-      <!-- Toggles flottants (visibles quand onglet Réseau actif) -->
-      <div class="map-toggles" id="map-toggles" style="display:none">
-        <button class="mt-btn" id="mt-route" onclick="toggleLayer('route')">
-          <span class="dot" style="background:var(--route)"></span>Routes
-        </button>
-        <button class="mt-btn" id="mt-terre" onclick="toggleLayer('terre')">
-          <span class="dot" style="background:var(--terre)"></span>Chemins terre
-        </button>
-        <button class="mt-btn" id="mt-afr" onclick="toggleLayer('afr')">
-          <span class="dot" style="background:var(--afr)"></span>AFR
-        </button>
-      </div>
-
-      <!-- Légende circuits -->
-      <div class="leg" id="legend"></div>
-
-      <!-- GPS FAB -->
-      <button class="gpsfab blink" id="gpsfab" onclick="toggleGps()">
-        <span class="ico">📍</span><span>Localisez-moi</span>
+    <!-- Toggles flottants réseau -->
+    <div class="map-toggles" id="map-toggles">
+      <button class="mt-btn" id="mt-route" onclick="toggleLayer('route')">
+        <span class="dot" style="background:var(--route)"></span>Routes
+      </button>
+      <button class="mt-btn" id="mt-terre" onclick="toggleLayer('terre')">
+        <span class="dot" style="background:var(--terre)"></span>Terre
+      </button>
+      <button class="mt-btn" id="mt-afr" onclick="toggleLayer('afr')">
+        <span class="dot" style="background:var(--afr)"></span>AFR
       </button>
     </div>
 
-  </div><!-- /body -->
-</div><!-- /wrap -->
+    <!-- Légende -->
+    <div class="leg" id="legend"></div>
+
+    <!-- GPS -->
+    <button class="gpsfab blink" id="gpsfab" onclick="toggleGps()">
+      <span>📍</span><span>Localisez-moi</span>
+    </button>
+  </div>
+</div>
+</div>
 
 <!-- Mobile FAB -->
 <button class="mtog" id="mtog" onclick="toggleDrawer()">📋 Circuits</button>
-
-<!-- Mobile Drawer -->
-<div class="mob-drawer-bg" id="mob-bg" onclick="closeDrawer()"></div>
+<div class="mob-bg" id="mob-bg" onclick="closeDrawer()"></div>
 <div class="mob-drawer" id="mob-drawer">
   <div class="mob-handle"></div>
   <div class="mob-tabs">
-    <button class="tab on"  id="mob-tab-circuits" onclick="tabDrawer('circuits',this)">🥾 Circuits</button>
-    <button class="tab"     id="mob-tab-pois"     onclick="tabDrawer('pois',this)">📍 Lieux</button>
-    <button class="tab"     id="mob-tab-reseau"   onclick="tabDrawer('reseau',this)">🗺️ Réseau</button>
-    <button class="tab"     id="mob-tab-infos"    onclick="tabDrawer('infos',this)">ℹ️ Infos</button>
+    <button class="tab on"  id="mbt-circuits" onclick="mobTab('circuits',this)">🥾</button>
+    <button class="tab"     id="mbt-pois"     onclick="mobTab('pois',this)">📍</button>
+    <button class="tab"     id="mbt-reseau"   onclick="mobTab('reseau',this)">🗺️</button>
+    <button class="tab"     id="mbt-infos"    onclick="mobTab('infos',this)">ℹ️</button>
   </div>
-  <div id="mob-scroll" style="padding:8px 10px 20px">
-    <div id="mob-tc-circuits">
-      <button class="showall" onclick="showAll();closeDrawer()">🗺️ Afficher tous les circuits</button>
+  <div style="padding:8px 10px 20px">
+    <div id="mbt-tc-circuits">
+      <button class="showall" onclick="showAll();closeDrawer()">🗺️ Tous les circuits</button>
       <div id="mob-circuit-list"></div>
     </div>
-    <div id="mob-tc-pois" style="display:none">
-      <div class="poi" onclick="goTo(47.8185,1.8095,0);closeDrawer()"><div class="pi">▶</div><div><div class="pn">Parking des randonneurs</div><div class="pc">Point de départ · Sortie du Bourg</div></div></div>
+    <div id="mbt-tc-pois" style="display:none">
+      <div class="poi" onclick="goTo(47.8185,1.8095,0);closeDrawer()"><div class="pi">▶</div><div><div class="pn">Parking des randonneurs</div><div class="pc">Point de départ</div></div></div>
       <div class="poi" onclick="goTo(47.8145,1.802,1);closeDrawer()"><div class="pi">⛰️</div><div><div class="pn">Butte des Élus</div><div class="pc">Tumulus gaulois · Vue panoramique</div></div></div>
-      <div class="poi" onclick="goTo(47.8218,1.805,2);closeDrawer()"><div class="pi">🏰</div><div><div class="pn">Château de Mézières</div><div class="pc">XVIIe s. · Style néo-Louis XIII</div></div></div>
-      <div class="poi" onclick="goTo(47.8222,1.8078,3);closeDrawer()"><div class="pi">⛪</div><div><div class="pn">Église Saint-Avit</div><div class="pc">XVe s., reconstruite en 1891</div></div></div>
-      <div class="poi" onclick="goTo(47.816,1.813,4);closeDrawer()"><div class="pi">🍷</div><div><div class="pn">Vignes AOC Orléans-Cléry</div><div class="pc">Cabernet Franc</div></div></div>
-      <div class="poi" onclick="goTo(47.808,1.804,5);closeDrawer()"><div class="pi">💧</div><div><div class="pn">Vallée aux Moines</div><div class="pc">Site naturel · Halimium protégé</div></div></div>
+      <div class="poi" onclick="goTo(47.8218,1.805,2);closeDrawer()"><div class="pi">🏰</div><div><div class="pn">Château de Mézières</div></div></div>
+      <div class="poi" onclick="goTo(47.8222,1.8078,3);closeDrawer()"><div class="pi">⛪</div><div><div class="pn">Église Saint-Avit</div></div></div>
+      <div class="poi" onclick="goTo(47.816,1.813,4);closeDrawer()"><div class="pi">🍷</div><div><div class="pn">Vignes AOC Orléans-Cléry</div></div></div>
+      <div class="poi" onclick="goTo(47.808,1.804,5);closeDrawer()"><div class="pi">💧</div><div><div class="pn">Vallée aux Moines</div></div></div>
     </div>
-    <div id="mob-tc-reseau" style="display:none">
-      <!-- sera cloné depuis tc-reseau -->
+    <div id="mbt-tc-reseau" style="display:none">
+      <!-- Contenu réseau cloné ici au premier clic -->
     </div>
-    <div id="mob-tc-infos" style="display:none">
-      <div class="ib"><h3>🥾 Conseils</h3><p>Chaussures adaptées recommandées. Chemins glissants par temps humide.</p></div>
-      <div class="ib"><h3>🚌 Accès bus</h3><p>Rémi Ligne 8 — arrêts Mairie et Le Bréau. Depuis Orléans : ~30 min</p></div>
+    <div id="mbt-tc-infos" style="display:none">
+      <div class="ib"><h3>🥾 Conseils</h3><p>Chaussures adaptées. Chemins glissants par temps humide.</p></div>
+      <div class="ib"><h3>🚌 Bus Rémi L8</h3><p>Arrêts Mairie et Le Bréau · ~30 min depuis Orléans</p></div>
       <div class="ib"><h3>📞 Mairie</h3><p>02 38 45 61 76 · Lun 14h-17h30 · Ven 8h30-11h30</p></div>
     </div>
   </div>
 </div>
 
-<!-- Tooltip style Leaflet -->
-<style>
-  .chem-tt{background:#1a2f1c!important;border:1px solid rgba(201,168,76,.3)!important;color:#f0ead8!important;font-family:'Source Sans 3',sans-serif!important;font-size:.72rem!important;padding:3px 7px!important;border-radius:5px!important;box-shadow:0 2px 8px rgba(0,0,0,.3)!important}
-  .leaflet-tooltip.chem-tt::before{display:none}
-</style>
-
 <script>
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // CONFIG
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 const BACKEND = "https://chatbot-mairie-mezieres.onrender.com";
 
-// ══════════════════════════════════════════
-// TRACKS (circuits existants — inchangés)
-// ══════════════════════════════════════════
-const TRACKS=[
-  {id:1,name:"Semi-marathon international de Mézières — 21.1 km",km:21.1,duree:"5h16",color:"#e74c3c",coords:[[47.818795,1.80587],[47.818829,1.805848],[47.819003,1.805734],[47.81931,1.805574],[47.819492,1.806005],[47.819634,1.806373],[47.819163,1.806815],[47.818807,1.806615],[47.818696,1.806119],[47.81914,1.806018],[47.819304,1.805593],[47.819328,1.805068],[47.819289,1.804318],[47.81955,1.804053],[47.819806,1.803811],[47.820094,1.803242],[47.820451,1.8026],[47.820684,1.801997],[47.820937,1.80124],[47.821126,1.800715],[47.821414,1.799973],[47.821689,1.799343],[47.821913,1.798766],[47.821942,1.798235],[47.821534,1.797856],[47.821092,1.797319],[47.820664,1.796703],[47.820271,1.796121],[47.819937,1.795622],[47.81988,1.795161],[47.820251,1.794478],[47.820646,1.793828],[47.821073,1.793222],[47.821346,1.792813],[47.821651,1.79206],[47.821839,1.791235],[47.821961,1.790363],[47.822008,1.789567],[47.821899,1.788809],[47.821809,1.788075],[47.821953,1.787329],[47.822084,1.786482],[47.822253,1.785649],[47.822527,1.784905],[47.822871,1.784192],[47.823166,1.783375],[47.823556,1.782842],[47.824118,1.782542],[47.824659,1.782271],[47.825148,1.782286],[47.818795,1.80587]]},
-  {id:2,name:"PR Tour du Bourg C12 — 5.8 km",km:5.8,duree:"1h26",color:"#9b59b6",coords:[[47.8185,1.8095],[47.8192,1.8062],[47.8200,1.8040],[47.8210,1.8020],[47.8220,1.8030],[47.8215,1.8055],[47.8205,1.8075],[47.8195,1.8090],[47.8185,1.8095]]},
-  {id:3,name:"PR Chemin des Vignes C8 — 8.4 km",km:8.4,duree:"2h06",color:"#27ae60",coords:[[47.8185,1.8095],[47.8175,1.8100],[47.8160,1.8130],[47.8148,1.8170],[47.8155,1.8195],[47.8170,1.8180],[47.8188,1.8165],[47.8200,1.8140],[47.8195,1.8110],[47.8185,1.8095]]},
-  {id:4,name:"PR Chemin des Vallées C3 — 14.3 km",km:14.3,duree:"3h34",color:"#f39c12",coords:[[47.81812,1.80128],[47.81868,1.80417],[47.8195,1.8041],[47.81977,1.80389],[47.82115,1.80035],[47.81947,1.79751],[47.81882,1.79734],[47.81787,1.7966],[47.81615,1.79451],[47.81419,1.79129],[47.80583,1.80287],[47.80335,1.81468],[47.80044,1.81729],[47.79906,1.82128],[47.79845,1.82369],[47.79768,1.82523],[47.79894,1.82781],[47.79822,1.83068],[47.7967,1.83463],[47.79569,1.84025],[47.79499,1.84751],[47.7977,1.84733],[47.80226,1.84416],[47.8016,1.84699],[47.80356,1.84806],[47.804,1.84783],[47.8099,1.84879],[47.81275,1.84824],[47.81598,1.85154],[47.81653,1.85055],[47.81785,1.84999],[47.81875,1.84969],[47.81961,1.84935],[47.81812,1.80128]]},
-  {id:5,name:"PR Butte des Élus C1 — 6.9 km",km:6.9,duree:"1h43",color:"#795548",coords:[[47.818734,1.806147],[47.819376,1.805965],[47.819309,1.80477],[47.818913,1.804269],[47.818739,1.803907],[47.818772,1.803497],[47.818659,1.802606],[47.81858,1.801829],[47.818452,1.801777],[47.81878,1.803998],[47.818894,1.804191],[47.81923,1.804131],[47.819798,1.803893],[47.820141,1.803105],[47.820689,1.801781],[47.82078,1.801547],[47.818734,1.806147]]},
-  {id:6,name:"PR Chemin de la Haure C5 — 10.2 km",km:10.2,duree:"2h33",color:"#16a085",coords:[[47.8185,1.8095],[47.8200,1.8100],[47.8218,1.8118],[47.8225,1.8145],[47.8215,1.8175],[47.8198,1.8195],[47.8180,1.8188],[47.8162,1.8170],[47.8150,1.8148],[47.8160,1.8118],[47.8175,1.8105],[47.8185,1.8095]]},
-  {id:7,name:"PR Tour des Hameaux C6 — 12.8 km",km:12.8,duree:"3h12",color:"#2980b9",coords:[[47.8185,1.8095],[47.8200,1.8060],[47.8210,1.8020],[47.8225,1.7980],[47.8238,1.7960],[47.8245,1.7990],[47.8235,1.8025],[47.8220,1.8060],[47.8205,1.8085],[47.8185,1.8095]]},
-  {id:8,name:"PR Chemin des Solognots C7 — 9.6 km",km:9.6,duree:"2h24",color:"#c0392b",coords:[[47.8185,1.8095],[47.8170,1.8085],[47.8155,1.8065],[47.8140,1.8040],[47.8128,1.8010],[47.8130,1.7985],[47.8145,1.7970],[47.8160,1.7982],[47.8175,1.8000],[47.8185,1.8030],[47.8185,1.8095]]},
-  {id:9,name:"PR Circuit de la Forêt C9 — 7.5 km",km:7.5,duree:"1h52",color:"#1abc9c",coords:[[47.8185,1.8095],[47.8198,1.8110],[47.8212,1.8130],[47.8225,1.8155],[47.8218,1.8178],[47.8202,1.8162],[47.8188,1.8140],[47.8178,1.8118],[47.8185,1.8095]]},
-  {id:10,name:"PR Chemin des Moines C10 — 11.4 km",km:11.4,duree:"2h51",color:"#e67e22",coords:[[47.8185,1.8095],[47.8175,1.8070],[47.8162,1.8042],[47.8148,1.8010],[47.8135,1.7978],[47.8122,1.7950],[47.8112,1.7930],[47.8108,1.7960],[47.8118,1.7990],[47.8132,1.8015],[47.8148,1.8038],[47.8165,1.8058],[47.8178,1.8078],[47.8185,1.8095]]},
-  {id:11,name:"PR Grande Boucle C11 — 18.7 km",km:18.7,duree:"4h41",color:"#8e44ad",coords:[[47.8185,1.8095],[47.8200,1.8060],[47.8220,1.8025],[47.8240,1.7990],[47.8258,1.7960],[47.8268,1.7935],[47.8260,1.7905],[47.8242,1.7880],[47.8220,1.7858],[47.8198,1.7842],[47.8175,1.7835],[47.8152,1.7842],[47.8130,1.7858],[47.8112,1.7878],[47.8098,1.7905],[47.8090,1.7935],[47.8095,1.7965],[47.8110,1.7990],[47.8128,1.8015],[47.8148,1.8038],[47.8168,1.8058],[47.8185,1.8095]]},
-  {id:12,name:"PR Chemin des Carriers C2 — 7.8 km",km:7.8,duree:"1h57",color:"#34495e",coords:[[47.8185,1.8095],[47.8192,1.8065],[47.8205,1.8040],[47.8218,1.8018],[47.8228,1.7998],[47.8225,1.7975],[47.8210,1.7962],[47.8195,1.7972],[47.8182,1.7992],[47.8175,1.8018],[47.8178,1.8048],[47.8185,1.8072],[47.8185,1.8095]]},
-  {id:13,name:"PR Chemin de Nuisance C4 — 9.1 km",km:9.1,duree:"2h17",color:"#d35400",coords:[[47.8185,1.8095],[47.8175,1.8110],[47.8162,1.8128],[47.8148,1.8148],[47.8135,1.8168],[47.8125,1.8188],[47.8128,1.8212],[47.8142,1.8228],[47.8158,1.8218],[47.8172,1.8198],[47.8180,1.8175],[47.8182,1.8148],[47.8185,1.8118],[47.8185,1.8095]]},
-  {id:14,name:"PR Tour des Étangs C13 — 15.6 km",km:15.6,duree:"3h54",color:"#2c3e50",coords:[[47.8185,1.8095],[47.8200,1.8120],[47.8218,1.8148],[47.8235,1.8172],[47.8252,1.8190],[47.8265,1.8205],[47.8272,1.8228],[47.8265,1.8252],[47.8248,1.8268],[47.8228,1.8272],[47.8208,1.8262],[47.8190,1.8245],[47.8175,1.8222],[47.8162,1.8195],[47.8152,1.8168],[47.8148,1.8140],[47.8155,1.8115],[47.8168,1.8100],[47.8185,1.8095]]}
+// Overpass appelé DIRECTEMENT depuis le navigateur (pas via Render)
+// → pas de restriction réseau, pas de timeout serveur
+const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+
+// ══════════════════════════════════════════════════════════
+// TRACKS
+// ══════════════════════════════════════════════════════════
+const TRACKS = [
+  {id:1, name:"Semi-marathon international — 21.1 km", km:21.1, duree:"5h16", color:"#e74c3c",
+   coords:[[47.818795,1.80587],[47.819492,1.806005],[47.819634,1.806373],[47.819163,1.806815],[47.818807,1.806615],[47.818696,1.806119],[47.820451,1.8026],[47.820937,1.80124],[47.821689,1.799343],[47.821534,1.797856],[47.820664,1.796703],[47.81988,1.795161],[47.820646,1.793828],[47.821651,1.79206],[47.822008,1.789567],[47.822527,1.784905],[47.824118,1.782542],[47.825475,1.783012],[47.827541,1.781916],[47.829079,1.780121],[47.829945,1.771558],[47.830795,1.767894],[47.833257,1.764763],[47.836074,1.759217],[47.838225,1.757018],[47.839657,1.754767],[47.818795,1.80587]]},
+  {id:2, name:"PR Tour du Bourg C12 — 5.8 km", km:5.8, duree:"1h26", color:"#9b59b6",
+   coords:[[47.8185,1.8095],[47.8192,1.8062],[47.820,1.804],[47.821,1.802],[47.822,1.803],[47.8215,1.8055],[47.8205,1.8075],[47.8185,1.8095]]},
+  {id:3, name:"PR Chemin des Vignes C8 — 8.4 km", km:8.4, duree:"2h06", color:"#27ae60",
+   coords:[[47.8185,1.8095],[47.8175,1.810],[47.816,1.813],[47.8148,1.817],[47.8155,1.8195],[47.817,1.818],[47.8188,1.8165],[47.820,1.814],[47.8195,1.811],[47.8185,1.8095]]},
+  {id:4, name:"PR Chemin des Vallées C3 — 14.3 km", km:14.3, duree:"3h34", color:"#f39c12",
+   coords:[[47.81812,1.80128],[47.8195,1.8041],[47.82115,1.80035],[47.81419,1.79129],[47.80583,1.80287],[47.80044,1.81729],[47.79845,1.82369],[47.79894,1.82781],[47.7967,1.83463],[47.79499,1.84751],[47.8099,1.84879],[47.81598,1.85154],[47.81961,1.84935],[47.81812,1.80128]]},
+  {id:5, name:"PR Butte des Élus C1 — 6.9 km", km:6.9, duree:"1h43", color:"#795548",
+   coords:[[47.818734,1.806147],[47.819376,1.805965],[47.819309,1.80477],[47.818913,1.804269],[47.818604,1.802158],[47.81858,1.801829],[47.81878,1.803998],[47.819798,1.803893],[47.820689,1.801781],[47.818734,1.806147]]},
+  {id:6, name:"PR Chemin de la Haure C5 — 10.2 km", km:10.2, duree:"2h33", color:"#16a085",
+   coords:[[47.8185,1.8095],[47.820,1.810],[47.8218,1.8118],[47.8225,1.8145],[47.8215,1.8175],[47.8162,1.817],[47.815,1.8148],[47.816,1.8118],[47.8185,1.8095]]},
+  {id:7, name:"PR Tour des Hameaux C6 — 12.8 km", km:12.8, duree:"3h12", color:"#2980b9",
+   coords:[[47.8185,1.8095],[47.820,1.806],[47.821,1.802],[47.8225,1.798],[47.8245,1.799],[47.8235,1.8025],[47.822,1.806],[47.8205,1.8085],[47.8185,1.8095]]},
+  {id:8, name:"PR Chemin des Solognots C7 — 9.6 km", km:9.6, duree:"2h24", color:"#c0392b",
+   coords:[[47.8185,1.8095],[47.817,1.8085],[47.8155,1.8065],[47.814,1.804],[47.8128,1.801],[47.813,1.7985],[47.8145,1.797],[47.816,1.7982],[47.8185,1.8030],[47.8185,1.8095]]},
+  {id:9, name:"PR Circuit de la Forêt C9 — 7.5 km", km:7.5, duree:"1h52", color:"#1abc9c",
+   coords:[[47.8185,1.8095],[47.8198,1.811],[47.8212,1.813],[47.8225,1.8155],[47.8218,1.8178],[47.8202,1.8162],[47.8188,1.814],[47.8185,1.8095]]},
+  {id:10, name:"PR Chemin des Moines C10 — 11.4 km", km:11.4, duree:"2h51", color:"#e67e22",
+   coords:[[47.8185,1.8095],[47.8175,1.807],[47.8162,1.8042],[47.8148,1.801],[47.8135,1.7978],[47.8112,1.793],[47.8108,1.796],[47.8132,1.8015],[47.8178,1.8078],[47.8185,1.8095]]},
+  {id:11, name:"PR Grande Boucle C11 — 18.7 km", km:18.7, duree:"4h41", color:"#8e44ad",
+   coords:[[47.8185,1.8095],[47.822,1.8025],[47.8258,1.796],[47.826,1.7905],[47.822,1.7858],[47.8175,1.7835],[47.813,1.7858],[47.8098,1.7905],[47.809,1.7935],[47.8128,1.8015],[47.8168,1.8058],[47.8185,1.8095]]},
+  {id:12, name:"PR Chemin des Carriers C2 — 7.8 km", km:7.8, duree:"1h57", color:"#34495e",
+   coords:[[47.8185,1.8095],[47.8205,1.804],[47.8228,1.7998],[47.8225,1.7975],[47.821,1.7962],[47.8182,1.7992],[47.8178,1.8048],[47.8185,1.8095]]},
+  {id:13, name:"PR Chemin de Nuisance C4 — 9.1 km", km:9.1, duree:"2h17", color:"#d35400",
+   coords:[[47.8185,1.8095],[47.8162,1.8128],[47.8135,1.8168],[47.8128,1.8212],[47.8158,1.8218],[47.818,1.8175],[47.8185,1.8118],[47.8185,1.8095]]},
+  {id:14, name:"PR Tour des Étangs C13 — 15.6 km", km:15.6, duree:"3h54", color:"#2c3e50",
+   coords:[[47.8185,1.8095],[47.8218,1.8148],[47.8252,1.819],[47.8272,1.8228],[47.8265,1.8252],[47.8228,1.8272],[47.819,1.8245],[47.8162,1.8195],[47.8148,1.814],[47.8168,1.810],[47.8185,1.8095]]}
 ];
 
-const POIS=[
-  {lat:47.8185,lng:1.8095,ico:"▶",name:"Parking des randonneurs",desc:"Point de départ · Sortie du Bourg"},
-  {lat:47.8145,lng:1.802, ico:"⛰️",name:"Butte des Élus",         desc:"Tumulus gaulois classé 1924 · 12 m"},
-  {lat:47.8218,lng:1.805, ico:"🏰",name:"Château de Mézières",    desc:"XVIIe s. · néo-Louis XIII"},
-  {lat:47.8222,lng:1.8078,ico:"⛪",name:"Église Saint-Avit",      desc:"XVe s., reconstruite en 1891"},
-  {lat:47.816, lng:1.813, ico:"🍷",name:"Vignes AOC Orléans-Cléry",desc:"Cabernet Franc"},
-  {lat:47.808, lng:1.804, ico:"💧",name:"Vallée aux Moines",      desc:"Site naturel · Halimium protégé"},
+const POIS = [
+  {lat:47.8185,lng:1.8095,ico:"▶", name:"Parking des randonneurs", desc:"Point de départ · Sortie du Bourg"},
+  {lat:47.8145,lng:1.802,  ico:"⛰️",name:"Butte des Élus",          desc:"Tumulus gaulois classé 1924 · 12 m"},
+  {lat:47.8218,lng:1.805,  ico:"🏰",name:"Château de Mézières",     desc:"XVIIe s. · néo-Louis XIII"},
+  {lat:47.8222,lng:1.8078, ico:"⛪",name:"Église Saint-Avit",       desc:"XVe s. · reconstruite en 1891"},
+  {lat:47.816, lng:1.813,  ico:"🍷",name:"Vignes AOC Orléans-Cléry",desc:"Cabernet Franc"},
+  {lat:47.808, lng:1.804,  ico:"💧",name:"Vallée aux Moines",       desc:"Site naturel · Halimium protégé"},
 ];
 
-// ══════════════════════════════════════════
-// CARTE LEAFLET
-// ══════════════════════════════════════════
-const map = L.map('map',{center:[47.818,1.807],zoom:13});
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-  attribution:'© <a href="https://openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/attributions">CARTO</a>',
-  subdomains:'abcd',maxZoom:20
+// ══════════════════════════════════════════════════════════
+// CARTE — fond OSM standard (fiable partout)
+// ══════════════════════════════════════════════════════════
+const map = L.map('map', {center:[47.818,1.807], zoom:13});
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxZoom: 19
 }).addTo(map);
 
-// POI markers
-function mkIco(e,gold){
+// Markers POI
+function mkIco(e, gold) {
+  const s = gold ? 28 : 22, fs = gold ? 12 : 9;
   return L.divIcon({
-    html:`<div style="background:${gold?'#c9a84c':'#1a2f1c'};color:${gold?'#1a2f1c':'#c9a84c'};width:${gold?28:22}px;height:${gold?28:22}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${gold?12:9}px;border:2px solid ${gold?'#1a2f1c':'#c9a84c'};box-shadow:0 2px 6px rgba(0,0,0,.35)">${e}</div>`,
-    iconSize:[gold?28:22,gold?28:22],iconAnchor:[gold?14:11,gold?14:11],popupAnchor:[0,-12],className:''
+    html:`<div style="background:${gold?'#c9a84c':'#1a2f1c'};color:${gold?'#1a2f1c':'#c9a84c'};width:${s}px;height:${s}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${fs}px;border:2px solid ${gold?'#1a2f1c':'#c9a84c'};box-shadow:0 2px 6px rgba(0,0,0,.4)">${e}</div>`,
+    iconSize:[s,s], iconAnchor:[s/2,s/2], popupAnchor:[0,-12], className:''
   });
 }
-const marks = POIS.map((p,i)=>
-  L.marker([p.lat,p.lng],{icon:mkIco(p.ico,i===0),zIndexOffset:1000}).addTo(map)
-   .bindPopup(`<div style="font-family:'Source Sans 3',sans-serif"><b>${p.ico} ${p.name}</b><br><small>${p.desc}</small></div>`)
+const marks = POIS.map((p,i) =>
+  L.marker([p.lat,p.lng], {icon:mkIco(p.ico,i===0), zIndexOffset:1000})
+   .addTo(map)
+   .bindPopup(`<b>${p.ico} ${p.name}</b><br><small style="color:#666">${p.desc}</small>`)
 );
 
 // Circuit polylines
-const layers={};
-let activeId=null, iaLayer=null;
-TRACKS.forEach(t=>{
-  layers[t.id]=L.polyline(t.coords,{color:t.color,weight:3,opacity:.75}).addTo(map);
-  layers[t.id].on('click',()=>selectTrack(t.id));
+const layers = {};
+let activeId = null, iaLayer = null;
+TRACKS.forEach(t => {
+  layers[t.id] = L.polyline(t.coords, {color:t.color, weight:3, opacity:.75}).addTo(map);
+  layers[t.id].on('click', () => selectTrack(t.id));
 });
 
-// ══════════════════════════════════════════
-// RÉSEAU OSM — couches Overpass
-// ══════════════════════════════════════════
-const netGroups = {route:L.layerGroup(), terre:L.layerGroup(), afr:L.layerGroup()};
-const netVisible = {route:true, terre:true, afr:true};
-const netStyles = {
-  route: {color:'#3b82f6',weight:3,opacity:.65},
-  terre: {color:'#22c55e',weight:2.5,opacity:.7,dashArray:'7,4'},
-  afr:   {color:'#f97316',weight:2.5,opacity:.75,dashArray:'12,5'},
+// ══════════════════════════════════════════════════════════
+// RÉSEAU OSM — Overpass appelé depuis le NAVIGATEUR
+// ══════════════════════════════════════════════════════════
+const netGroups  = {route: L.layerGroup(), terre: L.layerGroup(), afr: L.layerGroup()};
+const netVisible = {route: true, terre: true, afr: true};
+const netStyles  = {
+  route: {color:'#3b82f6', weight:3,   opacity:.6},
+  terre: {color:'#22c55e', weight:2.5, opacity:.7, dashArray:'7,4'},
+  afr:   {color:'#f97316', weight:2.5, opacity:.75, dashArray:'12,5'},
 };
 let osmLoaded = false;
 
-async function loadOSM(){
-  if(osmLoaded) return;
-  try{
-    const r = await fetch(`${BACKEND}/api/chemins`);
-    const data = await r.json();
+async function loadOSM() {
+  if (osmLoaded) return;
 
-    if(!data.ok) throw new Error(data.error);
+  const loader = document.getElementById('osm-loader');
+  const okEl   = document.getElementById('osm-ok');
+  const errEl  = document.getElementById('osm-err');
+  const cards  = document.getElementById('lyr-cards');
 
-    data.elements.forEach(el=>{
-      const style = netStyles[el.type] || netStyles.terre;
-      const pl = L.polyline(el.coords, {...style});
-      if(el.name) pl.bindTooltip(el.name,{sticky:true,className:'chem-tt'});
-      netGroups[el.type].addLayer(pl);
+  loader.style.display = 'flex';
+  okEl.style.display   = 'none';
+  errEl.style.display  = 'none';
+
+  // Requête Overpass — bbox Mézières-lez-Cléry
+  const query = `[out:json][timeout:30];
+(
+  way["highway"~"^(primary|secondary|tertiary|unclassified|residential|service|track|path|footway|cycleway)$"]
+    (47.790,1.775,47.840,1.860);
+);
+out geom;`;
+
+  try {
+    const r = await fetch(OVERPASS_URL, {
+      method: 'POST',
+      body: 'data=' + encodeURIComponent(query),
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'}
     });
 
-    // Ajouter les groupes à la carte
-    Object.values(netGroups).forEach(g=>g.addTo(map));
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+
+    let count = 0;
+    (data.elements || []).forEach(el => {
+      if (!el.geometry || el.geometry.length < 2) return;
+      const h = el.tags?.highway || '';
+      let type;
+      if (['primary','secondary','tertiary','unclassified','residential','service'].includes(h)) {
+        type = 'route';
+      } else {
+        type = 'terre';
+      }
+      // Les track avec tag operator=AFR ou note contenant AFR → afr
+      const op = (el.tags?.operator || '') + (el.tags?.note || '') + (el.tags?.description || '');
+      if (h === 'track' && /afr|remembrement/i.test(op)) type = 'afr';
+
+      const coords = el.geometry.map(g => [g.lat, g.lon]);
+      const pl = L.polyline(coords, {...netStyles[type]});
+      const name = el.tags?.name || el.tags?.ref || null;
+      if (name) pl.bindTooltip(name, {sticky:true, className:'chem-tt'});
+      netGroups[type].addLayer(pl);
+      count++;
+    });
+
+    Object.values(netGroups).forEach(g => g.addTo(map));
     osmLoaded = true;
 
-    document.getElementById('osm-loader').innerHTML = `<span class="osm-done">✓</span>&nbsp;${data.count} voies chargées depuis OpenStreetMap`;
-    document.getElementById('lyr-section').style.display = 'block';
+    loader.style.display = 'none';
+    okEl.style.display   = 'block';
+    okEl.textContent     = `✓ ${count} voies chargées depuis OpenStreetMap`;
+    cards.style.display  = 'flex';
 
   } catch(e) {
-    document.getElementById('osm-loader').innerHTML = `⚠️ Chargement OSM impossible (${e.message})`;
+    loader.style.display = 'none';
+    errEl.style.display  = 'block';
+    errEl.innerHTML      = `⚠️ Overpass indisponible (${e.message})<br>Les chemins OSM ne peuvent pas être chargés pour le moment.`;
+    cards.style.display  = 'flex'; // Afficher quand même les toggles (vides)
   }
 }
 
-function toggleLayer(type){
+function toggleLayer(type) {
   netVisible[type] = !netVisible[type];
-  const card = document.getElementById('lc-'+type);
-  const btn  = document.getElementById('mt-'+type);
-  if(netVisible[type]){
-    netGroups[type].addTo(map);
-    card?.classList.remove('off');
-    btn?.classList.remove('off');
-  } else {
-    map.removeLayer(netGroups[type]);
-    card?.classList.add('off');
-    btn?.classList.add('off');
-  }
+  ['lc-','mt-'].forEach(pre => {
+    document.getElementById(pre+type)?.classList.toggle('off', !netVisible[type]);
+  });
+  if (netVisible[type]) netGroups[type].addTo(map);
+  else map.removeLayer(netGroups[type]);
 }
 
-// ══════════════════════════════════════════
-// IA — GÉNÉRATION DE PARCOURS (Mistral)
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// IA — Mistral via backend Render
+// ══════════════════════════════════════════════════════════
 let iaMode = 'pied';
 
-function selMode(el){
-  document.querySelectorAll('.ia-mode').forEach(e=>e.classList.remove('sel'));
+function selMode(el) {
+  document.querySelectorAll('.ia-mode').forEach(e => e.classList.remove('sel'));
   el.classList.add('sel');
   iaMode = el.dataset.mode;
 }
 
-async function generateParcours(){
+async function generateParcours() {
   const dist  = document.getElementById('ia-dist').value;
   const style = document.getElementById('ia-style').value;
   const btn   = document.getElementById('ia-btn');
   const res   = document.getElementById('ia-result');
   const rBody = document.getElementById('ia-rbody');
-  const rTitle= document.getElementById('ia-rtitle-txt');
-  const leg   = document.getElementById('ia-rlegend');
+  const rTitle= document.getElementById('ia-rtitle');
+  const leg   = document.getElementById('ia-rleg');
 
-  btn.disabled=true;
-  btn.innerHTML='<span class="spin"></span>Génération…';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin" style="border-top-color:#fff"></span> Génération…';
   res.classList.add('show');
-  rTitle.textContent='Analyse en cours…';
-  rBody.innerHTML='<span class="loading">Calcul du parcours</span>';
-  leg.style.display='none';
+  rTitle.textContent = 'Analyse en cours…';
+  rBody.innerHTML = '<span class="loading-txt">Mistral calcule votre parcours</span>';
+  leg.style.display = 'none';
 
-  try{
-    const r = await fetch(`${BACKEND}/api/parcours`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({mode:iaMode, distance:dist, style})
+  try {
+    const r = await fetch(`${BACKEND}/api/parcours`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({mode: iaMode, distance: dist, style})
     });
     const data = await r.json();
-
-    if(!data.ok || !data.parcours) throw new Error(data.error || 'Réponse vide');
+    if (!data.ok || !data.parcours) throw new Error(data.error || 'Réponse invalide');
 
     const p = data.parcours;
-    rTitle.textContent = p.titre || 'Parcours généré';
+    rTitle.textContent = p.titre || 'Parcours généré ✦';
     rBody.innerHTML = `
-      <div style="margin-bottom:5px;color:#f0ead8"><strong>⏱ ${p.duree||'—'}</strong></div>
+      <div style="color:var(--text);margin-bottom:5px"><strong>⏱ ${p.duree||'—'}</strong></div>
       <div style="margin-bottom:6px">${p.description||''}</div>
-      ${p.conseils?`<div style="font-size:.7rem;color:#c9a84c">💡 ${p.conseils}</div>`:''}
+      ${p.conseils ? `<div style="font-size:.7rem;color:var(--gold)">💡 ${p.conseils}</div>` : ''}
     `;
 
-    // Tracé sur la carte
-    if(p.waypoints && p.waypoints.length>=2){
-      if(iaLayer) map.removeLayer(iaLayer);
-      const coords = p.waypoints.map(w=>Array.isArray(w)?w:[w.lat,w.lng]);
-      iaLayer = L.polyline(coords,{color:'#a78bfa',weight:5,opacity:.88,dashArray:'14,5'}).addTo(map);
-      map.fitBounds(iaLayer.getBounds(),{padding:[40,40]});
-      leg.style.display='flex';
+    if (p.waypoints && p.waypoints.length >= 2) {
+      if (iaLayer) map.removeLayer(iaLayer);
+      const coords = p.waypoints.map(w => Array.isArray(w) ? w : [w.lat, w.lng]);
+      iaLayer = L.polyline(coords, {color:'#a78bfa', weight:5, opacity:.88, dashArray:'14,5'}).addTo(map);
+      map.fitBounds(iaLayer.getBounds(), {padding:[40,40]});
+      leg.style.display = 'flex';
     }
 
-  } catch(e){
-    rTitle.textContent='Erreur de génération';
-    rBody.innerHTML=`<span style="color:rgba(249,115,22,.8)">Impossible de générer le parcours. Réessayez dans quelques instants.<br><small>${e.message}</small></span>`;
+  } catch(e) {
+    rTitle.textContent = 'Erreur de génération';
+    rBody.innerHTML = `<span style="color:rgba(249,115,22,.85)">Impossible de générer le parcours.<br><small>${e.message}</small></span>`;
   }
 
-  btn.disabled=false;
-  btn.innerHTML='✦ Créer mon parcours';
+  btn.disabled = false;
+  btn.innerHTML = '✦ Créer mon parcours';
 }
 
-function clearParcours(){
-  if(iaLayer){map.removeLayer(iaLayer);iaLayer=null;}
+function clearParcours() {
+  if (iaLayer) { map.removeLayer(iaLayer); iaLayer = null; }
   document.getElementById('ia-result').classList.remove('show');
 }
 
-// ══════════════════════════════════════════
-// CIRCUITS — sélection, légende, GPX
-// ══════════════════════════════════════════
-function diff(km){
-  if(km<=5)  return {l:'Facile',bg:'#d4edda',c:'#155724'};
-  if(km<=12) return {l:'Moyen', bg:'#fff3cd',c:'#856404'};
-  return {l:'Sportif',bg:'#f8d7da',c:'#721c24'};
+// ══════════════════════════════════════════════════════════
+// CIRCUITS
+// ══════════════════════════════════════════════════════════
+function diff(km) {
+  if (km <= 5)  return {l:'Facile', bg:'#d4edda', c:'#155724'};
+  if (km <= 12) return {l:'Moyen',  bg:'#fff3cd', c:'#856404'};
+  return            {l:'Sportif',bg:'#f8d7da', c:'#721c24'};
 }
 
-function buildList(){
-  const html=TRACKS.map(t=>{
-    const d=diff(t.km);
-    return`<div class="card" id="card-${t.id}" onclick="selectTrack(${t.id})">
+function buildList() {
+  const html = TRACKS.map(t => {
+    const d = diff(t.km);
+    return `
+    <div class="card" id="card-${t.id}" onclick="selectTrack(${t.id})">
       <div class="cbar" style="background:${t.color}"></div>
       <div class="cinfo"><div class="cn">${t.name}</div><div class="cmeta">${t.km} km · ${t.duree}</div></div>
       <span class="cbadge" style="background:${d.bg};color:${d.c}">${d.l}</span>
     </div>
     <div class="detail" id="det-${t.id}">
       <div class="dtitle">${t.name}</div>
-      <div class="dstats">
-        <span class="ds">📏 ${t.km} km</span>
-        <span class="ds">⏱ ${t.duree}</span>
-        <span class="ds cbadge" style="background:${d.bg};color:${d.c}">${d.l}</span>
-      </div>
-      <div class="ddesc">Circuit au départ du parking des randonneurs. Balisage GR.</div>
+      <div class="dstats"><span class="ds">📏 ${t.km} km</span><span class="ds">⏱ ${t.duree}</span><span class="ds cbadge" style="background:${d.bg};color:${d.c}">${d.l}</span></div>
+      <div class="ddesc">Circuit au départ du parking des randonneurs. Balisage PR.</div>
       <div class="dbtns">
         <button class="dbtn prim" style="background:${t.color}" onclick="zoomTrack(${t.id})">🔍 Zoomer</button>
         <button class="dbtn sec" onclick="downloadGPX(${t.id})">⬇️ GPX</button>
@@ -767,151 +650,145 @@ function buildList(){
       </div>
     </div>`;
   }).join('');
-  document.getElementById('circuit-list').innerHTML=html;
-  document.getElementById('mob-circuit-list').innerHTML=html;
+  document.getElementById('circuit-list').innerHTML = html;
+  document.getElementById('mob-circuit-list').innerHTML = html;
 }
 
-function selectTrack(id){
-  if(activeId===id){clearSelection();return;}
-  activeId=id;
-  TRACKS.forEach(t=>layers[t.id].setStyle(t.id===id?{weight:5,opacity:1}:{weight:2,opacity:.12}));
-  document.querySelectorAll('.card').forEach(c=>c.classList.remove('on'));
-  document.querySelectorAll('.detail').forEach(d=>d.classList.remove('on'));
+function selectTrack(id) {
+  if (activeId === id) { clearSelection(); return; }
+  activeId = id;
+  TRACKS.forEach(t => layers[t.id].setStyle(t.id===id ? {weight:5,opacity:1} : {weight:2,opacity:.12}));
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('on'));
+  document.querySelectorAll('.detail').forEach(d => d.classList.remove('on'));
   document.getElementById(`card-${id}`)?.classList.add('on');
   document.getElementById(`det-${id}`)?.classList.add('on');
-  document.getElementById('circuit-list')?.classList.add('detail-mode');
   buildLegend();
   zoomTrack(id);
-  if(window.innerWidth<=640) closeDrawer();
+  if (window.innerWidth <= 640) closeDrawer();
 }
 
-function zoomTrack(id){ map.fitBounds(layers[id].getBounds(),{padding:[30,30]}); }
+function zoomTrack(id) { map.fitBounds(layers[id].getBounds(), {padding:[30,30]}); }
 
-function clearSelection(){
-  activeId=null;
-  TRACKS.forEach(t=>layers[t.id].setStyle({weight:3,opacity:.75}));
-  document.querySelectorAll('.card').forEach(c=>c.classList.remove('on'));
-  document.querySelectorAll('.detail').forEach(d=>d.classList.remove('on'));
-  document.getElementById('circuit-list')?.classList.remove('detail-mode');
+function clearSelection() {
+  activeId = null;
+  TRACKS.forEach(t => layers[t.id].setStyle({weight:3, opacity:.75}));
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('on'));
+  document.querySelectorAll('.detail').forEach(d => d.classList.remove('on'));
   buildLegend();
 }
 
-function showAll(){
+function showAll() {
   clearSelection();
-  map.fitBounds(L.latLngBounds(TRACKS.flatMap(t=>t.coords)),{padding:[30,30]});
+  map.fitBounds(L.latLngBounds(TRACKS.flatMap(t => t.coords)), {padding:[30,30]});
 }
 
-function buildLegend(){
-  const el=document.getElementById('legend');
-  if(!el) return;
-  el.innerHTML='<h4>Circuits</h4>'+TRACKS.map(t=>`
+function buildLegend() {
+  const el = document.getElementById('legend');
+  if (!el) return;
+  el.innerHTML = '<h4>Circuits</h4>' + TRACKS.map(t => `
     <div class="li ${activeId===t.id?'on':''}" onclick="selectTrack(${t.id})">
-      <div class="ll" style="background:${t.color}"></div>${t.km}km
+      <div class="ll" style="background:${t.color}"></div>${t.km} km
     </div>`).join('');
 }
 
-function downloadGPX(id){
-  const t=TRACKS.find(x=>x.id===id);if(!t)return;
-  const pts=t.coords.map(c=>`<trkpt lat="${c[0]}" lon="${c[1]}"></trkpt>`).join('\n');
-  const gpx=`<?xml version="1.0"?><gpx version="1.1" creator="MAT-Mezieres"><trk><name>${t.name}</name><trkseg>${pts}</trkseg></trk></gpx>`;
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'}));
-  a.download=`circuit-${id}-mezieres.gpx`;
+function downloadGPX(id) {
+  const t = TRACKS.find(x => x.id===id); if (!t) return;
+  const pts = t.coords.map(c => `<trkpt lat="${c[0]}" lon="${c[1]}"></trkpt>`).join('\n');
+  const gpx = `<?xml version="1.0"?><gpx version="1.1" creator="MAT-Mezieres"><trk><n>${t.name}</n><trkseg>${pts}</trkseg></trk></gpx>`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'}));
+  a.download = `circuit-${id}-mezieres.gpx`;
   a.click();
 }
 
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // GPS
-// ══════════════════════════════════════════
-let gpsWatchId=null,userMarker=null,userAccuracy=null;
-function toggleGps(){
-  const btn=document.getElementById('gpsfab');
-  if(gpsWatchId){
-    navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null;
-    if(userMarker){map.removeLayer(userMarker);userMarker=null;}
-    if(userAccuracy){map.removeLayer(userAccuracy);userAccuracy=null;}
+// ══════════════════════════════════════════════════════════
+let gpsWatchId=null, userMarker=null, userAccuracy=null;
+
+function toggleGps() {
+  const btn = document.getElementById('gpsfab');
+  if (gpsWatchId) {
+    navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId=null;
+    if (userMarker)   { map.removeLayer(userMarker);   userMarker=null; }
+    if (userAccuracy) { map.removeLayer(userAccuracy); userAccuracy=null; }
     btn.classList.remove('on');
-    btn.innerHTML='<span class="ico">📍</span><span>Localisez-moi</span>';
+    btn.innerHTML = '<span>📍</span><span>Localisez-moi</span>';
     return;
   }
-  if(!navigator.geolocation){alert('Géolocalisation non supportée');return;}
-  btn.innerHTML='<span class="ico">📡</span><span>Localisation…</span>';
-  gpsWatchId=navigator.geolocation.watchPosition(pos=>{
-    const ll=[pos.coords.latitude,pos.coords.longitude],acc=pos.coords.accuracy||0;
-    if(!userMarker) userMarker=L.circleMarker(ll,{radius:8,color:'#1a2f1c',weight:3,fillColor:'#c9a84c',fillOpacity:1}).addTo(map);
+  if (!navigator.geolocation) { alert('Géolocalisation non supportée'); return; }
+  btn.innerHTML = '<span>📡</span><span>Localisation…</span>';
+  gpsWatchId = navigator.geolocation.watchPosition(pos => {
+    const ll = [pos.coords.latitude, pos.coords.longitude], acc = pos.coords.accuracy||0;
+    if (!userMarker)   userMarker   = L.circleMarker(ll,{radius:8,color:'#1a2f1c',weight:3,fillColor:'#c9a84c',fillOpacity:1}).addTo(map);
     else userMarker.setLatLng(ll);
-    if(!userAccuracy) userAccuracy=L.circle(ll,{radius:acc,color:'#6b9e5e',weight:1,fillColor:'#a8c89a',fillOpacity:.15}).addTo(map);
-    else{userAccuracy.setLatLng(ll);userAccuracy.setRadius(acc);}
+    if (!userAccuracy) userAccuracy = L.circle(ll,{radius:acc,color:'#6b9e5e',weight:1,fillColor:'#a8c89a',fillOpacity:.15}).addTo(map);
+    else { userAccuracy.setLatLng(ll); userAccuracy.setRadius(acc); }
     btn.classList.add('on');
-    btn.innerHTML='<span class="ico">📍</span><span>Localisé</span>';
-  },err=>{
+    btn.innerHTML = '<span>📍</span><span>Localisé ✓</span>';
+  }, () => {
     btn.classList.remove('on');
-    btn.innerHTML='<span class="ico">📍</span><span>Localisez-moi</span>';
-    alert("Position inaccessible");
-  },{enableHighAccuracy:true,maximumAge:5000,timeout:12000});
+    btn.innerHTML = '<span>📍</span><span>Localisez-moi</span>';
+  }, {enableHighAccuracy:true, maximumAge:5000, timeout:12000});
 }
-function startTrackGps(id){selectTrack(id);toggleGps();}
 
-// ══════════════════════════════════════════
+function startTrackGps(id) { selectTrack(id); toggleGps(); }
+
+// ══════════════════════════════════════════════════════════
 // TABS
-// ══════════════════════════════════════════
-function tab(n,btn){
-  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+// ══════════════════════════════════════════════════════════
+function doTab(n, btn) {
+  document.querySelectorAll('.tc').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.side .tab').forEach(b => b.classList.remove('on'));
   document.getElementById('tc-'+n)?.classList.add('on');
   btn.classList.add('on');
-
-  // Toggles flottants + chargement OSM si onglet réseau
-  const toggles = document.getElementById('map-toggles');
-  if(n==='reseau'){
-    toggles.style.display='flex';
+  const tog = document.getElementById('map-toggles');
+  if (n === 'reseau') {
+    tog.style.display = 'flex';
     loadOSM();
   } else {
-    toggles.style.display='none';
+    tog.style.display = 'none';
   }
 }
 
-function tabDrawer(n,btn){
-  ['circuits','pois','reseau','infos'].forEach(id=>{
-    document.getElementById('mob-tc-'+id).style.display=(id===n)?'block':'none';
-    document.getElementById('mob-tab-'+id)?.classList.toggle('on',id===n);
-  });
-  if(n==='reseau') loadOSM();
-}
-
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // DRAWER MOBILE
-// ══════════════════════════════════════════
-function toggleDrawer(){
-  const dr=document.getElementById('mob-drawer');
-  const bg=document.getElementById('mob-bg');
-  const tog=document.getElementById('mtog');
-  const open=dr.classList.toggle('open');
-  bg.classList.toggle('open',open);
-  tog.textContent=open?'🗺️ Carte':'📋 Circuits';
+// ══════════════════════════════════════════════════════════
+function toggleDrawer() {
+  const dr = document.getElementById('mob-drawer');
+  const bg = document.getElementById('mob-bg');
+  const tog = document.getElementById('mtog');
+  const open = dr.classList.toggle('open');
+  bg.classList.toggle('open', open);
+  tog.textContent = open ? '🗺️ Carte' : '📋 Circuits';
 }
-function closeDrawer(){
+function closeDrawer() {
   document.getElementById('mob-drawer').classList.remove('open');
   document.getElementById('mob-bg').classList.remove('open');
-  document.getElementById('mtog').textContent='📋 Circuits';
+  document.getElementById('mtog').textContent = '📋 Circuits';
+}
+function mobTab(n, btn) {
+  ['circuits','pois','reseau','infos'].forEach(id => {
+    document.getElementById('mbt-tc-'+id).style.display = (id===n) ? 'block' : 'none';
+    document.getElementById('mbt-'+id)?.classList.toggle('on', id===n);
+  });
+  if (n === 'reseau') loadOSM();
 }
 
-// ══════════════════════════════════════════
-// POI navigation
-// ══════════════════════════════════════════
-function goTo(lat,lng,i){
-  map.setView([lat,lng],16);
+// ══════════════════════════════════════════════════════════
+// POI
+// ══════════════════════════════════════════════════════════
+function goTo(lat, lng, i) {
+  map.setView([lat,lng], 16);
   marks[i].openPopup();
 }
 
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 // INIT
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
 buildList();
 buildLegend();
-window.addEventListener('load',()=>{
-  setTimeout(()=>document.getElementById('gpsfab')?.classList.remove('blink'),9000);
-});
+setTimeout(() => document.getElementById('gpsfab')?.classList.remove('blink'), 9000);
 </script>
 </body>
 </html>
