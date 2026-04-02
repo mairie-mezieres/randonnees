@@ -581,6 +581,7 @@ let pickingDepart = false;
 
 function setDepartMode(mode) {
   departMode = mode;
+  // Boutons (peuvent être absents si onglet réseau pas encore rendu)
   ['parking','carte','gps'].forEach(m=>{
     document.getElementById('dep-'+m)?.classList.toggle('active', m===mode);
   });
@@ -589,30 +590,31 @@ function setDepartMode(mode) {
 
   if (mode==='parking') {
     departCoords = [47.818096, 1.801526];
-    info.textContent = '🅿️ Parking des randonneurs sélectionné';
-    info.classList.add('show');
-    hint.style.display='none';
+    if (info) { info.textContent='🅿️ Parking des randonneurs sélectionné'; info.classList.add('show'); }
+    if (hint) hint.style.display='none';
     pickingDepart=false;
+    map.getContainer().style.cursor='';
     if (departMarker) { map.removeLayer(departMarker); departMarker=null; }
+
   } else if (mode==='carte') {
-    info.textContent = '🖱️ Cliquez sur la carte pour définir le départ';
-    info.classList.add('show');
-    hint.style.display='block';
+    if (info) { info.textContent='🖱️ Cliquez sur la carte pour définir le départ'; info.classList.add('show'); }
+    if (hint) hint.style.display='block';
     pickingDepart=true;
     map.getContainer().style.cursor='crosshair';
+
   } else if (mode==='gps') {
-    info.textContent = '📡 Localisation GPS en cours…';
-    info.classList.add('show');
-    hint.style.display='none';
+    if (info) { info.textContent='📡 Localisation GPS en cours…'; info.classList.add('show'); }
+    if (hint) hint.style.display='none';
     pickingDepart=false;
-    if (!navigator.geolocation) { info.textContent='⚠️ GPS non disponible'; return; }
+    map.getContainer().style.cursor='';
+    if (!navigator.geolocation) { if(info) info.textContent='⚠️ GPS non disponible'; return; }
     navigator.geolocation.getCurrentPosition(pos=>{
-      departCoords=[pos.coords.latitude,pos.coords.longitude];
-      info.textContent=`📍 Position GPS : ${departCoords[0].toFixed(5)}, ${departCoords[1].toFixed(5)}`;
+      departCoords=[pos.coords.latitude, pos.coords.longitude];
+      if (info) info.textContent=`📍 GPS : ${departCoords[0].toFixed(5)}, ${departCoords[1].toFixed(5)}`;
       if (departMarker) map.removeLayer(departMarker);
       departMarker=L.circleMarker(departCoords,{radius:9,color:'#a78bfa',weight:3,fillColor:'#a78bfa',fillOpacity:.7}).addTo(map);
       map.setView(departCoords,14);
-    },()=>{info.textContent='⚠️ Position GPS indisponible';},{enableHighAccuracy:true,timeout:10000});
+    },()=>{ if(info) info.textContent='⚠️ Position GPS indisponible'; },{enableHighAccuracy:true,timeout:10000});
   }
 }
 
@@ -622,14 +624,15 @@ map.on('click', e=>{
   departCoords=[e.latlng.lat, e.latlng.lng];
   if (departMarker) map.removeLayer(departMarker);
   departMarker=L.circleMarker(departCoords,{radius:9,color:'#a78bfa',weight:3,fillColor:'#a78bfa',fillOpacity:.7}).addTo(map);
-  document.getElementById('depart-info').textContent=`📍 Départ : ${departCoords[0].toFixed(5)}, ${departCoords[1].toFixed(5)}`;
-  document.getElementById('depart-hint').style.display='none';
+  const info=document.getElementById('depart-info');
+  if (info) info.textContent=`📍 Départ : ${departCoords[0].toFixed(5)}, ${departCoords[1].toFixed(5)}`;
+  const hint=document.getElementById('depart-hint');
+  if (hint) hint.style.display='none';
   map.getContainer().style.cursor='';
   pickingDepart=false;
 });
 
-// Afficher l'info départ au chargement
-setDepartMode('parking');
+// setDepartMode est appelé dans buildList() / init — pas ici au niveau global
 
 // ══════════════════════════════════════════════════════════
 // IA PARCOURS
