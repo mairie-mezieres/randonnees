@@ -222,7 +222,7 @@ html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--fo
     <!-- Toggles flottants réseau -->
     <div class="map-togs" id="map-togs">
       <button class="mt-btn" id="mt-route" onclick="toggleLayer('route')"><span class="dot" style="background:#60a5fa"></span>Routes</button>
-      <button class="mt-btn" id="mt-terre" onclick="toggleLayer('terre')"><span class="dot" style="background:#4ade80"></span>Chemins</button>
+      <button class="mt-btn" id="mt-terre" onclick="toggleLayer('terre')"><span class="dot" style="background:#16a34a"></span>Chemins</button>
       <button class="mt-btn" id="mt-afr"   onclick="toggleLayer('afr')">  <span class="dot" style="background:#fb923c"></span>AFR</button>
     </div>
 
@@ -327,7 +327,7 @@ function htmlReseau() {
       <div class="lyr-sw"></div>
     </div>
     <div class="lyr-card" id="lc-terre" onclick="toggleLayer('terre')">
-      <div class="lyr-dot" style="background:#4ade80"></div>
+      <div class="lyr-dot" style="background:#16a34a"></div>
       <div style="flex:1"><div class="lyr-name">Chemins de terre</div><div class="lyr-desc">Communaux · Piétons &amp; vélos</div></div>
       <div class="lyr-sw"></div>
     </div>
@@ -341,6 +341,7 @@ function htmlReseau() {
   <div class="sec-lbl">Générer un parcours</div>
   <div class="gen-card">
     <div class="gen-hdr"><div class="gen-badge">⚙ Algo</div><div class="gen-title">Parcours sur mesure</div></div>
+    <div style="background:rgba(234,88,12,.1);border:1px solid rgba(234,88,12,.25);border-radius:6px;padding:5px 9px;font-size:.65rem;color:#b54300;line-height:1.4">🧪 <strong>Moteur expérimental</strong> — en cours de développement. Les tracés peuvent être approximatifs.</div>
     <div><div class="gen-lbl">Mode</div>
     <div class="gen-modes">
       <div class="gen-mode sel" data-mode="pied"   onclick="selMode(this)"><span class="em">🥾</span>À pied</div>
@@ -349,8 +350,8 @@ function htmlReseau() {
     <div><div class="gen-lbl">Préférence de voies</div>
     <div class="gen-modes">
       <div class="gen-mode sel" data-pref="chemins" onclick="selPref(this)"><span class="em">🌿</span>Chemins</div>
-      <div class="gen-mode"     data-pref="mixte"   onclick="selPref(this)"><span class="em">🗺️</span>Mixte</div>
       <div class="gen-mode"     data-pref="routes"  onclick="selPref(this)"><span class="em">🛣️</span>Routes</div>
+      <div class="gen-mode"     data-pref="mixte"   onclick="selPref(this)"><span class="em">🗺️</span>Mixte</div>
     </div></div>
     <div><div class="gen-lbl">Distance souhaitée</div>
     <select class="gen-sel" id="gen-dist" onchange="updateDuree()">
@@ -469,7 +470,7 @@ const netGroups  = {route:L.layerGroup(), terre:L.layerGroup(), afr:L.layerGroup
 const netVisible = {route:true, terre:true, afr:true};
 const netStyles  = {
   route: {color:'#60a5fa', weight:5, opacity:.85},
-  terre: {color:'#4ade80', weight:4, opacity:.90, dashArray:'8,5'},
+  terre: {color:'#16a34a', weight:5, opacity:1.0, dashArray:'8,5'},
   afr:   {color:'#fb923c', weight:5, opacity:.95, dashArray:'14,6'},
 };
 
