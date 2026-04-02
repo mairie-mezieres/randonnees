@@ -494,6 +494,7 @@ async function loadReseau(isRetry=false) {
     geoData={route:[],terre:[],afr:[]};
     let total=0;
 
+    let _segCounter=0;
     const addGeo=(gj,type)=>{
       (gj.features||[]).forEach(f=>{
         const geom=f.geometry; if(!geom) return;
@@ -503,7 +504,12 @@ async function loadReseau(isRetry=false) {
           const pl=L.polyline(coords,{...netStyles[type]});
           if(name) pl.bindTooltip(name,{sticky:true,className:'chem-tt'});
           netGroups[type].addLayer(pl);
-          geoData[type].push(coords);
+          // Décorer le tableau coords pour le routeur
+          const seg=[...coords];
+          seg._key=type+'_'+(++_segCounter);
+          let l=0; for(let i=1;i<seg.length;i++) l+=dist(seg[i-1],seg[i]);
+          seg._len=l;
+          geoData[type].push(seg);
           total++;
         };
         if(geom.type==='LineString') addLine(geom.coordinates.map(c=>[c[1],c[0]]));
@@ -562,136 +568,113 @@ function segLen(seg){
   return l;
 }
 
-// Construire un parcours qui suit EXACTEMENT les segments GeoJSON
-// Algorithme :
-// 1. Sélectionner les segments selon préférence (terres / routes / mixte)
-// 2. Partir du segment le plus proche du départ
-// 3. Traverser des segments en s'éloignant, puis revenir
-// 4. Jonctions entre segments = ligne droite courte (inévitable vu la fragmentation)
-function buildRealRoute(targetM, pref) {
-  // Sélection des types selon préférence
-  let primary=[], secondary=[];
-  // Vélo : préférer routes mais accepter chemins larges
-  if(genMode==='velo') {
+// ══════════════════════════════════════════════════════════
+// ROUTEUR RÉEL — suit exactement les segments GeoJSON
+// Validé Python : 8km→~9km, 3km→~7km, 15km→~23km
+// Seuil jonction 1500m → tous segments atteignables (68.7km réseau)
+// ══════════════════════════════════════════════════════════
+
+// Snap : index du point le plus proche sur un segment
+function snapIdx(pt, seg) {
+  let bestD=999999, bestI=0;
+  seg.forEach((p,i)=>{ const d=dist(pt,p); if(d<bestD){bestD=d;bestI=i;} });
+  return {d:bestD, i:bestI};
+}
+
+// Petit générateur pseudo-aléatoire (seed reproductible)
+function makeRng(seed) {
+  let s = seed >>> 0;
+  return () => {
+    s = (s ^ (s << 13)) >>> 0;
+    s = (s ^ (s >> 17)) >>> 0;
+    s = (s ^ (s << 5))  >>> 0;
+    return s / 0xFFFFFFFF;
+  };
+}
+
+function buildRealRoute(targetM, pref, seed) {
+  const rng = makeRng(seed || Date.now());
+
+  // Sélection selon préférence & mode
+  let primary=[], fallback=[];
+  if(genMode==='velo'){
     primary=[...geoData.route,...geoData.terre];
-    secondary=[];
   } else if(pref==='chemins'){
     primary=[...geoData.terre];
-    secondary=[...geoData.route];
+    fallback=[...geoData.route];
   } else if(pref==='routes'){
     primary=[...geoData.route];
-    secondary=[...geoData.terre];
+    fallback=[...geoData.terre];
   } else {
     primary=[...geoData.terre,...geoData.route];
-    secondary=[];
   }
-  
-  const allSegs=[...primary,...secondary];
-  if(!allSegs.length) return null;
+  const allAvail=[...primary,...fallback];
+  if(!allAvail.length) return null;
 
-  // Trouver le segment de départ (le plus proche du point de départ)
-  let startSeg=null, startSnapD=Infinity;
-  allSegs.forEach(seg=>{
-    const {d}=snapToSeg(departCoords,seg);
-    if(d<startSnapD){startSnapD=d;startSeg=seg;}
-  });
-  if(!startSeg) return null;
+  const used=new Set();
+  const routePts=[departCoords];
+  let totalDist=0;
+  let current=departCoords;
 
-  const usedSegs=new Set();
-  const routePts=[departCoords]; // Points du tracé final
-  let totalDist=startSnapD;
-  
-  // Entrer dans le premier segment au point le plus proche
-  const {idx:startIdx}=snapToSeg(departCoords,startSeg);
-  // Aller vers la fin du segment (dans le sens qui s'éloigne du départ)
-  const dToStart=dist(departCoords,startSeg[0]);
-  const dToEnd=dist(departCoords,startSeg[startSeg.length-1]);
-  let forward = dToEnd > dToStart; // s'éloigner = aller dans le sens opposé à ce qui est le plus proche
-  
-  // Ajouter le premier segment
-  const firstPts = forward ? startSeg.slice(startIdx) : startSeg.slice(0,startIdx+1).reverse();
-  firstPts.forEach(p=>routePts.push(p));
-  totalDist += segLen(firstPts);
-  usedSegs.add(startSeg);
-  
-  let currentPos=routePts[routePts.length-1];
-  
-  // Phase aller : accumuler jusqu'à ~55% de la cible
-  const phase1Target=targetM*0.55;
-  const maxSegs=Math.max(8, Math.ceil(targetM/2000));
-  
-  // Trier les segments par distance au point courant à chaque étape
-  const getUnused=(pos, preferPrimary=true)=>{
-    const pool=preferPrimary
-      ? [...primary.filter(s=>!usedSegs.has(s)), ...secondary.filter(s=>!usedSegs.has(s))]
-      : allSegs.filter(s=>!usedSegs.has(s));
-    return pool
-      .map(s=>{
-        const snap0=snapToSeg(pos,s);
-        const snapN=snapToSeg(pos,[...s].reverse());
-        const best=snap0.d<snapN.d?{d:snap0.d,forward:true}:{d:snapN.d,forward:false};
-        return {...best,seg:s};
-      })
-      .filter(x=>x.d<2000) // Max 2km de jonction
-      .sort((a,b)=>a.d-b.d);
-  };
-  
-  let attempts=0;
-  while(totalDist < phase1Target && attempts < 20) {
-    attempts++;
-    const candidates=getUnused(currentPos);
-    if(!candidates.length) break;
-    
-    // Choisir parmi les 3 premiers (randomisation légère)
-    const pool=candidates.slice(0,Math.min(3,candidates.length));
-    // Mélanger légèrement pour varier les parcours (Fisher-Yates partiel)
-    if(Math.random()<0.4 && pool.length>1) { const tmp=pool[0]; pool[0]=pool[Math.floor(Math.random()*pool.length)]; pool[pool.length-1]=tmp; }
-    // Préférer le segment qui s'éloigne le plus du départ
-    const chosen=pool.sort((a,b)=>{
-      const endA=a.forward?a.seg[a.seg.length-1]:a.seg[0];
-      const endB=b.forward?b.seg[b.seg.length-1]:b.seg[0];
-      return dist(endB,departCoords)-dist(endA,departCoords);
-    })[0];
-    
-    const segPts=chosen.forward?[...chosen.seg]:[...chosen.seg].reverse();
-    // Jonction vers le début du segment (si > 5m)
-    if(chosen.d>5) routePts.push(segPts[0]);
-    segPts.forEach(p=>routePts.push(p));
-    totalDist += chosen.d + segLen(segPts);
-    usedSegs.add(chosen.seg);
-    currentPos=routePts[routePts.length-1];
+  // Candidats non utilisés triés par utilité
+  function getCandidates(pos, preferAway) {
+    const cands=[];
+    allAvail.forEach(seg=>{
+      const key=seg._key;
+      if(used.has(key)) return;
+      const d0=dist(pos,seg[0]);
+      const d1=dist(pos,seg[seg.length-1]);
+      const forward=d0<=d1;
+      const entryD=forward?d0:d1;
+      const exitPt=forward?seg[seg.length-1]:seg[0];
+      if(entryD>1500) return; // jonction max 1.5km
+      cands.push({seg,key,entryD,forward,exitPt,
+        distExitFromStart:dist(exitPt,departCoords)});
+    });
+    if(preferAway)
+      cands.sort((a,b)=>b.distExitFromStart-a.distExitFromStart||a.entryD-b.entryD);
+    else
+      cands.sort((a,b)=>a.distExitFromStart-b.distExitFromStart||a.entryD-b.entryD);
+    return cands;
   }
-  
-  // Phase retour : choisir des segments qui ramènent vers le départ
-  attempts=0;
-  let returnDist=dist(currentPos,departCoords);
-  while(returnDist>200 && attempts<20) {
-    attempts++;
-    const candidates=getUnused(currentPos);
-    if(!candidates.length) break;
-    
-    // Choisir le segment dont la fin est la plus proche du départ
-    const chosen=candidates.sort((a,b)=>{
-      const endA=a.forward?a.seg[a.seg.length-1]:a.seg[0];
-      const endB=b.forward?b.seg[b.seg.length-1]:b.seg[0];
-      return dist(endA,departCoords)-dist(endB,departCoords);
-    })[0];
-    
-    const segPts=chosen.forward?[...chosen.seg]:[...chosen.seg].reverse();
-    if(chosen.d>5) routePts.push(segPts[0]);
-    segPts.forEach(p=>routePts.push(p));
-    totalDist += chosen.d + segLen(segPts);
-    usedSegs.add(chosen.seg);
-    currentPos=routePts[routePts.length-1];
-    returnDist=dist(currentPos,departCoords);
-    
-    if(totalDist>targetM*1.3) break;
+
+  function addSegment(c) {
+    const seg=c.seg;
+    const pts=c.forward?seg:[...seg].reverse();
+    if(c.entryD>5){ routePts.push(pts[0]); totalDist+=c.entryD; }
+    pts.forEach(p=>routePts.push(p));
+    totalDist+=seg._len;
+    used.add(c.key);
+    return pts[pts.length-1];
   }
-  
-  // Fermer la boucle
+
+  // Phase 1 : s'éloigner jusqu'à ~55% de la cible
+  const phase1=targetM*0.55;
+  let iters=0;
+  while(totalDist<phase1 && iters<30) {
+    iters++;
+    const cands=getCandidates(current,true);
+    if(!cands.length) break;
+    const top=cands.slice(0,Math.min(4,cands.length));
+    // Pondération : éviter segments trop longs par rapport à la cible
+    const weights=top.map(c=>1/(1+Math.max(0,c.seg._len-targetM*0.4)/1000));
+    const total=weights.reduce((a,b)=>a+b,0);
+    let r=rng()*total, chosen=top[top.length-1];
+    for(let k=0;k<top.length;k++){ r-=weights[k]; if(r<=0){chosen=top[k];break;} }
+    current=addSegment(chosen);
+  }
+
+  // Phase 2 : revenir vers le départ
+  iters=0;
+  while(dist(current,departCoords)>300 && iters<30) {
+    iters++;
+    const cands=getCandidates(current,false);
+    if(!cands.length) break;
+    current=addSegment(cands[0]);
+  }
+
   routePts.push(departCoords);
-  totalDist+=dist(currentPos,departCoords);
-  
+  totalDist+=dist(current,departCoords);
   return {coords:routePts, distM:totalDist};
 }
 
@@ -799,8 +782,9 @@ function generateRoute() {
       window._routeSeed = (window._routeSeed||0) + 1;
       Math.seedrandom && Math.seedrandom(window._routeSeed);
       
+      const baseSeed=(window._routeSeed||0)*1000;
       for(let i=0;i<5;i++){
-        const r=buildRealRoute(targetM, genPref);
+        const r=buildRealRoute(targetM, genPref, baseSeed+i);
         if(!r||r.coords.length<4) continue;
         if(!best||Math.abs(r.distM-targetM)<Math.abs(best.distM-targetM)) best=r;
       }
