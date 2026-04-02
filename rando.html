@@ -11,149 +11,160 @@
 <style>
 :root{
   --forest:#1e3a1e; --moss:#3d6b3d; --sage:#6b9e5e; --light:#a8c89a;
-  --cream:#f5f0e8;  --parch:#ede8dc; --gold:#c9a84c; --bark:#5c4033;
+  --cream:#f5f0e8;  --parch:#ede8dc; --gold:#c9a84c;
   --route:#3b82f6;  --terre:#16a34a; --afr:#ea580c;
-  --panel:#1a2f1c;  --text:#f0ead8;  --muted:#8a9e8d;
-  --border:rgba(201,168,76,.15);
+  --parcours:#7c3aed;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--forest)}
-
+html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--forest);overflow:hidden}
 .wrap{display:flex;flex-direction:column;height:100dvh}
 
-/* HEADER */
+/* ── HEADER ── */
 .hd{background:var(--forest);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(168,200,154,.2);flex-shrink:0}
-.hs{font-size:.6rem;color:var(--sage);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1px}
-.ht{font-family:'Playfair Display',serif;font-size:clamp(.85rem,2vw,1.1rem);color:var(--cream);font-weight:500}
+.hs{font-size:.6rem;color:var(--sage);text-transform:uppercase;letter-spacing:.07em}
+.ht{font-family:'Playfair Display',serif;font-size:clamp(.82rem,2vw,1.05rem);color:var(--cream)}
 .ht em{color:var(--light);font-style:italic}
-.hr{text-align:right;font-size:.7rem;color:var(--light)}
+.hr{text-align:right;font-size:.68rem;color:var(--light)}
 
-/* BODY */
-.body{display:flex;flex:1;min-height:0;position:relative}
+/* ── BODY ── */
+.body{display:flex;flex:1;overflow:hidden;position:relative}
 
-/* SIDEBAR */
-.side{width:280px;flex-shrink:0;background:var(--parch);display:flex;flex-direction:column;min-height:0;position:relative;z-index:10;transition:width .25s}
-.side.hidden{width:0;overflow:hidden}
+/* ── SIDEBAR ── */
+.side{width:280px;flex-shrink:0;background:var(--parch);display:flex;flex-direction:column;transition:width .25s,opacity .25s;overflow:hidden;position:relative}
+.side.hidden{width:0;opacity:0;pointer-events:none}
+
+/* Bouton toggle — colle sur le bord droit de la sidebar, toujours visible */
+.side-tog{
+  position:absolute;right:-20px;top:50%;transform:translateY(-50%);
+  z-index:500;background:var(--forest);
+  border:1px solid rgba(168,200,154,.3);border-left:none;
+  border-radius:0 8px 8px 0;color:var(--light);
+  width:20px;height:48px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;box-shadow:2px 0 6px rgba(0,0,0,.3);
+  transition:right .25s
+}
+.side.hidden .side-tog{right:-20px}
+.side-tog:hover{background:var(--moss)}
+
+/* ── ONGLETS ── */
 .tabs{display:flex;background:var(--forest);flex-shrink:0}
-.tab{flex:1;padding:8px 4px;background:none;border:none;color:var(--sage);font-size:.63rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;overflow:hidden}
+.tab{flex:1;padding:9px 4px;background:none;border:none;color:var(--sage);font-size:.63rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;overflow:hidden}
 .tab.on{color:var(--light);border-bottom-color:var(--gold)}
-.tc{display:none;flex:1;overflow-y:auto;flex-direction:column;min-height:0}
+.tc{display:none;flex:1;overflow-y:auto;flex-direction:column}
 .tc.on{display:flex}
 .tc::-webkit-scrollbar{width:3px}
-.tc::-webkit-scrollbar-thumb{background:var(--light);border-radius:2px}
+.tc::-webkit-scrollbar-thumb{background:rgba(61,107,61,.3);border-radius:2px}
 
-/* Bouton toggle sidebar */
-.side-toggle{position:absolute;right:-18px;top:50%;transform:translateY(-50%);z-index:20;background:var(--forest);border:1px solid rgba(168,200,154,.3);border-left:none;border-radius:0 7px 7px 0;color:var(--light);width:18px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;box-shadow:2px 0 6px rgba(0,0,0,.25)}
-.side-toggle:hover{background:var(--moss)}
-.side.hidden .side-toggle{right:-18px}
-
-/* CIRCUITS */
-.showall{margin:8px 10px;padding:7px 12px;background:var(--forest);color:var(--cream);border:none;border-radius:6px;font-size:.72rem;cursor:pointer;text-align:center;transition:background .2s}
+/* ── CIRCUITS ── */
+.notice{background:rgba(30,58,30,.07);padding:6px 12px;font-size:.67rem;color:var(--moss);border-bottom:1px solid rgba(0,0,0,.07);line-height:1.4}
+.showall{margin:8px 10px;padding:7px 12px;background:var(--forest);color:var(--cream);border:none;border-radius:6px;font-size:.72rem;cursor:pointer;text-align:center}
 .showall:hover{background:var(--moss)}
-.card{padding:10px 12px 10px 16px;border-bottom:1px solid rgba(0,0,0,.07);cursor:pointer;position:relative;transition:background .15s;display:flex;align-items:center;gap:10px}
+.card{padding:10px 12px 10px 16px;border-bottom:1px solid rgba(0,0,0,.07);cursor:pointer;position:relative;display:flex;align-items:center;gap:10px;transition:background .15s}
 .card:hover{background:rgba(61,107,61,.08)}
 .card.on{background:rgba(61,107,61,.14)}
 .cbar{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:0 2px 2px 0}
 .cinfo{flex:1;min-width:0}
-.cn{font-size:.8rem;font-weight:600;color:var(--forest);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cn{font-size:.79rem;font-weight:600;color:var(--forest);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cmeta{font-size:.67rem;color:var(--moss);margin-top:1px}
-.cbadge{font-size:.6rem;padding:2px 6px;border-radius:10px;font-weight:600;text-transform:uppercase;flex-shrink:0}
+.cbadge{font-size:.6rem;padding:2px 6px;border-radius:10px;font-weight:600;flex-shrink:0}
 .detail{background:white;border-bottom:1px solid rgba(0,0,0,.1);padding:12px 14px;display:none}
 .detail.on{display:block}
-.dtitle{font-family:'Playfair Display',serif;font-size:.9rem;color:var(--forest);margin-bottom:7px}
-.dstats{display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap}
+.dtitle{font-family:'Playfair Display',serif;font-size:.88rem;color:var(--forest);margin-bottom:6px}
+.dstats{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap}
 .ds{background:var(--parch);padding:3px 8px;border-radius:7px;font-size:.68rem;color:var(--forest);font-weight:600}
-.ddesc{font-size:.71rem;color:#555;line-height:1.5;margin-bottom:8px}
 .dbtns{display:flex;gap:5px;flex-wrap:wrap}
 .dbtn{padding:5px 9px;border:none;border-radius:6px;font-size:.67rem;cursor:pointer;font-family:inherit;font-weight:600}
 .dbtn.prim{color:white}
 .dbtn.sec{background:var(--parch);color:var(--forest)}
 
-/* INFOS */
-.ib{padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.07)}
-.ib h3{font-family:'Playfair Display',serif;font-size:.8rem;color:var(--forest);margin-bottom:4px}
-.ib p{font-size:.71rem;color:#555;line-height:1.5}
-.hl{background:var(--forest);color:var(--cream);border-radius:6px;padding:6px 10px;font-size:.7rem;margin-top:5px;line-height:1.6}
-
-/* ═══ ONGLET RÉSEAU ═══ */
-.net-wrap{padding:10px;display:flex;flex-direction:column;gap:10px}
-.net-title{font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:var(--moss);font-weight:700}
-
-/* Layer cards */
+/* ── RÉSEAU ── */
+.net-wrap{padding:10px;display:flex;flex-direction:column;gap:9px}
+.sec-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--moss);font-weight:700}
+.net-st{font-size:.7rem;padding:7px 10px;border-radius:7px;display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.06);color:var(--moss)}
+.net-st.ok{background:rgba(22,163,74,.08);color:#15803d}
+.net-st.err{background:rgba(234,88,12,.08);color:#b54300;line-height:1.5}
 .lyr-card{display:flex;align-items:center;gap:9px;background:white;border:1px solid rgba(0,0,0,.1);border-radius:9px;padding:9px 11px;cursor:pointer;transition:all .2s;user-select:none}
 .lyr-card:hover{background:var(--parch)}
 .lyr-card.off{opacity:.35}
 .lyr-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .lyr-name{font-size:.78rem;font-weight:600;color:var(--forest)}
-.lyr-desc{font-size:.65rem;color:var(--moss);margin-top:1px}
+.lyr-desc{font-size:.64rem;color:var(--moss);margin-top:1px}
 .lyr-sw{width:30px;height:17px;background:rgba(0,0,0,.15);border-radius:9px;position:relative;transition:background .2s;flex-shrink:0;margin-left:auto}
 .lyr-sw::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;background:#fff;border-radius:50%;transition:transform .2s}
 .lyr-card:not(.off) .lyr-sw{background:var(--gold)}
 .lyr-card:not(.off) .lyr-sw::after{transform:translateX(13px)}
+.afr-note{background:rgba(234,88,12,.07);border:1px solid rgba(234,88,12,.2);border-radius:8px;padding:8px 10px;font-size:.68rem;color:#b54300;line-height:1.5}
 
-.afr-note{background:rgba(234,88,12,.07);border:1px solid rgba(234,88,12,.2);border-radius:8px;padding:8px 10px;font-size:.68rem;color:rgba(180,60,5,.9);line-height:1.5}
-.net-status{font-size:.7rem;padding:7px 10px;border-radius:7px;background:rgba(0,0,0,.06);color:var(--moss)}
-.net-status.ok{background:rgba(22,163,74,.08);color:#15803d}
-.net-status.err{background:rgba(234,88,12,.08);color:var(--afr)}
-
-/* ═══ GÉNÉRATEUR DE PARCOURS ═══ */
+/* ── GÉNÉRATEUR ── */
 .gen-card{background:white;border:1px solid rgba(0,0,0,.1);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
 .gen-hdr{display:flex;align-items:center;gap:7px}
-.gen-badge{background:var(--forest);color:var(--gold);font-size:.58rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 7px;border-radius:20px}
+.gen-badge{background:var(--forest);color:var(--gold);font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:20px}
 .gen-title{font-size:.8rem;font-weight:700;color:var(--forest)}
-.gen-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--moss);margin-bottom:3px}
+.gen-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--moss);margin-bottom:3px}
 .gen-sel{width:100%;background:var(--parch);border:1px solid rgba(0,0,0,.12);border-radius:6px;color:var(--forest);padding:6px 8px;font-family:inherit;font-size:.76rem;outline:none}
 .gen-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .gen-mode{background:var(--parch);border:1px solid rgba(0,0,0,.1);border-radius:6px;padding:5px 2px;text-align:center;font-size:.66rem;color:var(--moss);cursor:pointer;transition:all .15s}
 .gen-mode .em{display:block;font-size:.95rem;margin-bottom:1px}
 .gen-mode.sel{background:rgba(30,58,30,.1);border-color:var(--forest);color:var(--forest);font-weight:700}
-
-/* Départ */
-.dep-btns{display:flex;gap:5px;margin-top:4px}
-.dep-btn{flex:1;background:var(--parch);border:1px solid rgba(0,0,0,.1);border-radius:6px;color:var(--moss);font-family:inherit;font-size:.68rem;font-weight:600;padding:6px 2px;cursor:pointer;transition:all .15s;text-align:center}
+.dep-btns{display:flex;gap:5px;margin-top:3px}
+.dep-btn{flex:1;background:var(--parch);border:1px solid rgba(0,0,0,.1);border-radius:6px;color:var(--moss);font-family:inherit;font-size:.68rem;font-weight:600;padding:6px 2px;cursor:pointer;text-align:center;transition:all .15s}
 .dep-btn.active{background:rgba(30,58,30,.1);border-color:var(--forest);color:var(--forest)}
-.dep-info{font-size:.67rem;color:var(--moss);margin-top:3px;display:none}
-.dep-info.show{display:block}
-
-.gen-btn{width:100%;background:var(--forest);border:none;border-radius:8px;color:var(--cream);font-family:'Playfair Display',serif;font-size:.85rem;font-weight:500;padding:9px;cursor:pointer;transition:opacity .2s}
+.dep-info{font-size:.67rem;color:var(--moss);margin-top:3px;min-height:1em}
+.gen-btn{width:100%;background:var(--forest);border:none;border-radius:8px;color:var(--cream);font-family:'Playfair Display',serif;font-size:.85rem;padding:9px;cursor:pointer;transition:background .2s}
 .gen-btn:hover{background:var(--moss)}
 .gen-btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* Résultat */
 .gen-result{display:none;background:var(--parch);border:1px solid rgba(0,0,0,.1);border-radius:8px;padding:10px;font-size:.73rem;color:var(--forest)}
 .gen-result.show{display:block}
 .gen-rtitle{font-family:'Playfair Display',serif;font-size:.85rem;color:var(--forest);margin-bottom:4px}
-.gen-rbody{color:#555;line-height:1.55;margin-bottom:7px}
+.gen-rbody{color:#444;line-height:1.55;margin-bottom:7px;font-size:.72rem}
 .gen-rbtns{display:flex;gap:5px}
-.gen-rdl,.gen-rclear{flex:1;border:none;border-radius:5px;font-family:inherit;font-size:.67rem;font-weight:600;padding:5px;cursor:pointer}
-.gen-rdl{background:rgba(30,58,30,.1);color:var(--forest)}
-.gen-rclear{background:rgba(0,0,0,.07);color:#666}
+.gen-rbtn{flex:1;border:none;border-radius:5px;font-family:inherit;font-size:.67rem;font-weight:600;padding:6px;cursor:pointer}
+.gen-rbtn.dl{background:rgba(30,58,30,.12);color:var(--forest)}
+.gen-rbtn.gps{background:rgba(22,163,74,.12);color:#15803d}
+.gen-rbtn.clr{background:rgba(0,0,0,.07);color:#555}
 
-/* MAP */
-.map-wrap{flex:1;position:relative;min-width:0}
+/* ── INFOS ── */
+.ib{padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.07)}
+.ib h3{font-family:'Playfair Display',serif;font-size:.8rem;color:var(--forest);margin-bottom:4px}
+.ib p{font-size:.71rem;color:#555;line-height:1.5}
+.hl{background:var(--forest);color:var(--cream);border-radius:6px;padding:6px 10px;font-size:.7rem;margin-top:5px;line-height:1.6}
+
+/* ── MAP ── */
+.map-wrap{flex:1;position:relative;overflow:hidden}
 #map{position:absolute;inset:0}
 
-/* Toggles flottants réseau */
-.map-toggles{position:absolute;top:10px;right:10px;z-index:700;display:none;flex-direction:column;gap:4px}
-.mt-btn{background:rgba(30,58,30,.9);backdrop-filter:blur(3px);border:1px solid rgba(168,200,154,.25);border-radius:7px;color:var(--cream);font-family:inherit;font-size:.68rem;font-weight:700;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 7px rgba(0,0,0,.3);transition:all .15s;white-space:nowrap}
+/* Toggles flottants */
+.map-togs{position:absolute;top:10px;right:10px;z-index:400;display:none;flex-direction:column;gap:4px}
+.mt-btn{background:rgba(30,58,30,.88);backdrop-filter:blur(3px);border:1px solid rgba(168,200,154,.25);border-radius:7px;color:var(--cream);font-family:inherit;font-size:.68rem;font-weight:700;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 7px rgba(0,0,0,.3);white-space:nowrap}
 .mt-btn .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .mt-btn.off{opacity:.4}
 
+/* GPS FAB */
+.gpsfab{position:absolute;left:14px;bottom:16px;z-index:400;background:rgba(30,58,30,.88);backdrop-filter:blur(3px);border:1px solid rgba(168,200,154,.3);border-radius:24px;color:var(--cream);font-family:inherit;font-size:.78rem;font-weight:700;padding:9px 14px;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.3)}
+.gpsfab.on{border-color:var(--sage);color:var(--light)}
+
 /* Légende */
-.leg{background:rgba(245,240,232,.93);border-radius:7px;padding:8px 10px;font-size:.67rem;box-shadow:0 2px 8px rgba(0,0,0,.15);max-height:200px;overflow-y:auto}
+.leg{background:rgba(245,240,232,.93);border-radius:7px;padding:8px 10px;font-size:.67rem;box-shadow:0 2px 8px rgba(0,0,0,.15);max-height:180px;overflow-y:auto}
 .leg h4{font-family:'Playfair Display',serif;font-size:.72rem;color:var(--forest);margin-bottom:4px}
-.li{display:flex;align-items:center;gap:5px;margin-bottom:2px;cursor:pointer;color:#333;padding:1px 0}
+.li{display:flex;align-items:center;gap:5px;margin-bottom:2px;cursor:pointer;color:#333}
 .li.on{font-weight:700;color:var(--forest)}
 .ll{width:16px;height:3px;border-radius:2px;flex-shrink:0}
 
-/* GPS FAB */
-.gpsfab{position:absolute;left:14px;bottom:16px;z-index:600;background:rgba(30,58,30,.9);backdrop-filter:blur(3px);border:1px solid rgba(168,200,154,.3);border-radius:24px;color:var(--cream);font-family:inherit;font-size:.78rem;font-weight:700;padding:9px 14px;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.3)}
-.gpsfab.on{border-color:var(--sage);color:var(--light)}
+/* Hint départ */
+.dep-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:400;background:rgba(30,58,30,.92);border:1px solid var(--gold);border-radius:10px;color:var(--gold);font-size:.8rem;font-weight:700;padding:10px 18px;pointer-events:none;display:none}
 
-/* Départ hint */
-.dep-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:700;background:rgba(30,58,30,.92);border:1px solid var(--gold);border-radius:10px;color:var(--gold);font-size:.8rem;font-weight:700;padding:10px 18px;pointer-events:none;display:none}
+/* ── DRAWER MOBILE ── */
+.mob-fab{display:none;position:fixed;bottom:16px;right:16px;z-index:600;background:var(--forest);color:var(--cream);border:1px solid rgba(168,200,154,.3);border-radius:24px;padding:10px 18px;font-size:.8rem;font-weight:700;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.35);align-items:center;gap:8px}
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:700}
+.mob-overlay.open{display:block}
+.mob-drawer{display:none;position:fixed;bottom:0;left:0;right:0;max-height:80dvh;background:var(--parch);border-radius:16px 16px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.3);z-index:800;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.mob-drawer.open{display:flex;transform:translateY(0)}
+.mob-handle{width:38px;height:4px;background:rgba(0,0,0,.18);border-radius:2px;margin:12px auto 8px;flex-shrink:0}
+.mob-tabs{display:flex;background:var(--forest);flex-shrink:0}
+.mob-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 
-/* Animations */
+/* ── ANIMATIONS ── */
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .blink{animation:pulse 1.5s 3}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -162,17 +173,18 @@ html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--fo
 @keyframes ld{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
 
 /* Leaflet */
-.chem-tt{background:var(--forest)!important;border:1px solid rgba(201,168,76,.3)!important;color:var(--cream)!important;font-family:inherit!important;font-size:.7rem!important;padding:3px 7px!important;border-radius:5px!important}
+.chem-tt{background:var(--forest)!important;border:1px solid rgba(201,168,76,.3)!important;color:var(--cream)!important;font-size:.7rem!important;padding:3px 7px!important;border-radius:5px!important;font-family:inherit!important}
 .leaflet-tooltip.chem-tt::before{display:none!important}
-.leaflet-popup-content-wrapper{background:var(--cream);border-radius:8px;border:none}
+.leaflet-popup-content-wrapper{background:var(--cream);border-radius:8px}
 .pt{font-family:'Playfair Display',serif;font-size:.9rem;color:var(--forest);margin-bottom:3px}
 .pb{font-size:.72rem;color:#555;line-height:1.5}
 
-/* Mobile */
-@media(max-width:600px){
-  .side{display:none}
-  .side-toggle{display:none}
-  .map-toggles{top:auto;bottom:70px;right:10px}
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .side{display:none!important}     /* Remplacé par le drawer */
+  .mob-fab{display:flex}
+  .side-tog{display:none}
+  .map-togs{top:auto;bottom:76px;right:10px}
   .leg{display:none}
 }
 </style>
@@ -180,203 +192,231 @@ html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--fo
 <body>
 <div class="wrap">
 
+<!-- HEADER -->
 <div class="hd">
-  <div>
-    <div class="hs">Commune de</div>
-    <div class="ht">Mézières-lez-Cléry <em>— À l'orée de la Sologne</em></div>
-  </div>
-  <div class="hr">
-    <div class="hs" style="text-align:right">Randonnées pédestres</div>
-    14 circuits · 3 à 22 km
-  </div>
+  <div><div class="hs">Commune de</div><div class="ht">Mézières-lez-Cléry <em>— À l'orée de la Sologne</em></div></div>
+  <div class="hr"><div class="hs" style="text-align:right">Randonnées pédestres</div>14 circuits · 3 à 22 km</div>
 </div>
 
 <div class="body">
 
-  <!-- SIDEBAR -->
+  <!-- ═══ SIDEBAR DESKTOP ═══ -->
   <div class="side" id="side">
-    <button class="side-toggle" id="side-toggle" onclick="toggleSide()" title="Masquer/afficher">‹</button>
-
-    <div class="tabs">
-      <!-- Réseau EN PREMIER -->
-      <button class="tab on" onclick="doTab('reseau',this)">🗺️ Réseau</button>
-      <button class="tab"    onclick="doTab('circuits',this)">🥾 Circuits</button>
-      <button class="tab"    onclick="doTab('infos',this)">ℹ️ Infos</button>
+    <button class="side-tog" id="side-tog" onclick="toggleSide()">‹</button>
+    <div class="tabs" id="desk-tabs">
+      <button class="tab on" onclick="doTab('reseau',this,'desk')">🗺️ Réseau</button>
+      <button class="tab"    onclick="doTab('circuits',this,'desk')">🥾 Circuits</button>
+      <button class="tab"    onclick="doTab('infos',this,'desk')">ℹ️ Infos</button>
     </div>
-
-    <!-- ═══ RÉSEAU ═══ -->
-    <div class="tc on" id="tc-reseau">
-      <div class="net-wrap">
-
-        <div class="net-title">Voies & chemins</div>
-        <div class="net-status" id="net-status">
-          <span class="spin"></span> Chargement des voies…
-        </div>
-
-        <div id="lyr-cards" style="display:none;flex-direction:column;gap:6px">
-          <div class="lyr-card" id="lc-route" onclick="toggleLayer('route')">
-            <div class="lyr-dot" style="background:#60a5fa;box-shadow:0 0 5px #60a5fa55"></div>
-            <div style="flex:1"><div class="lyr-name">Routes & rues</div><div class="lyr-desc">Revêtement dur · incl. routes inter-communes</div></div>
-            <div class="lyr-sw"></div>
-          </div>
-          <div class="lyr-card" id="lc-terre" onclick="toggleLayer('terre')">
-            <div class="lyr-dot" style="background:#4ade80;box-shadow:0 0 5px #4ade8055"></div>
-            <div style="flex:1"><div class="lyr-name">Chemins de terre</div><div class="lyr-desc">Communaux · Piétons & vélos · Balisés</div></div>
-            <div class="lyr-sw"></div>
-          </div>
-          <div class="lyr-card" id="lc-afr" onclick="toggleLayer('afr')">
-            <div class="lyr-dot" style="background:#fb923c;box-shadow:0 0 5px #fb923c55"></div>
-            <div style="flex:1"><div class="lyr-name">Chemins AFR</div><div class="lyr-desc">Exploitation agricole · Vérifier accès</div></div>
-            <div class="lyr-sw"></div>
-          </div>
-        </div>
-
-        <div class="afr-note">⚠️ Les chemins AFR sont des voies agricoles privées. Se renseigner en mairie avant de les emprunter : 02 38 45 61 76.</div>
-
-        <div class="net-title">Générer un parcours</div>
-
-        <div class="gen-card">
-          <div class="gen-hdr">
-            <div class="gen-badge">⚙ Algo</div>
-            <div class="gen-title">Parcours sur mesure</div>
-          </div>
-
-          <div>
-            <div class="gen-label">Mode</div>
-            <div class="gen-modes">
-              <div class="gen-mode sel" data-mode="pied"   onclick="selMode(this)"><span class="em">🥾</span>À pied</div>
-              <div class="gen-mode"     data-mode="velo"   onclick="selMode(this)"><span class="em">🚴</span>Vélo</div>
-              <div class="gen-mode"     data-mode="cheval" onclick="selMode(this)"><span class="em">🐴</span>Cheval</div>
-            </div>
-          </div>
-
-          <div>
-            <div class="gen-label">Distance souhaitée</div>
-            <select class="gen-sel" id="gen-dist">
-              <option value="3">~3 km · 45 min à pied</option>
-              <option value="5">~5 km · 1h15</option>
-              <option value="8" selected>~8 km · 2h</option>
-              <option value="12">~12 km · 3h</option>
-              <option value="15">~15 km · 3h45</option>
-              <option value="20">~20 km · 5h</option>
-            </select>
-          </div>
-
-          <div>
-            <div class="gen-label">Point de départ</div>
-            <div class="dep-btns">
-              <button class="dep-btn active" id="dep-parking" onclick="setDepart('parking')">🅿️ Parking</button>
-              <button class="dep-btn" id="dep-carte"   onclick="setDepart('carte')">🖱️ Carte</button>
-              <button class="dep-btn" id="dep-gps"     onclick="setDepart('gps')">📍 GPS</button>
-            </div>
-            <div class="dep-info show" id="dep-info">🅿️ Parking des randonneurs</div>
-          </div>
-
-          <button class="gen-btn" id="gen-btn" onclick="generateRoute()">⚙ Calculer le parcours</button>
-
-          <div class="gen-result" id="gen-result">
-            <div class="gen-rtitle" id="gen-rtitle">Parcours calculé</div>
-            <div class="gen-rbody" id="gen-rbody"></div>
-            <div class="gen-rbtns">
-              <button class="gen-rdl"    id="gen-rdl"    onclick="downloadRouteGPX()">⬇️ GPX</button>
-              <button class="gen-rclear"                 onclick="clearRoute()">✕ Effacer</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ═══ CIRCUITS ═══ -->
-    <div class="tc" id="tc-circuits">
-      <div style="background:rgba(30,58,30,.06);padding:7px 12px;font-size:.67rem;color:var(--moss);border-bottom:1px solid rgba(0,0,0,.07);line-height:1.5">
-        ℹ️ Exemples de parcours · Les circuits C1, C2 et C3 sont les 3 officiels balisés.
-      </div>
-      <button class="showall" onclick="showAll()">🗺️ Afficher tous les circuits</button>
-      <div id="circuit-list"></div>
-    </div>
-
-    <!-- ═══ INFOS ═══ -->
-    <div class="tc" id="tc-infos">
-      <div class="ib"><h3>🥾 Conseils</h3><p>Chaussures adaptées recommandées. Chemins glissants par temps humide. Emportez de l'eau.</p></div>
-      <div class="ib"><h3>🐾 Animaux</h3><p>Chiens admis en laisse. Respectez la faune locale.</p></div>
-      <div class="ib"><h3>🚌 Accès bus</h3><p>Rémi Ligne 8 — arrêts <strong>Mairie</strong> et <strong>Le Bréau</strong><br>Depuis Orléans : ~30 min</p></div>
-      <div class="ib"><h3>📞 Mairie</h3><p>36 rue du bourg — 45370<br>02 38 45 61 76<br>Lun 14h-17h30 · Ven 8h30-11h30</p>
-        <div class="hl">🌐 mezieres-lez-clery.fr<br>📻 Radio Mézières sur Facebook</div>
-      </div>
-    </div>
+    <div class="tc on" id="tc-reseau"><!-- contenu réseau injecté --></div>
+    <div class="tc"    id="tc-circuits"><!-- contenu circuits injecté --></div>
+    <div class="tc"    id="tc-infos"><!-- contenu infos injecté --></div>
   </div>
 
-  <!-- ═══ CARTE ═══ -->
+  <!-- ═══ MAP ═══ -->
   <div class="map-wrap">
     <div id="map"></div>
     <div class="dep-hint" id="dep-hint">Cliquez sur la carte pour choisir le départ</div>
 
     <!-- Toggles flottants réseau -->
-    <div class="map-toggles" id="map-toggles">
-      <button class="mt-btn" id="mt-route" onclick="toggleLayer('route')">
-        <span class="dot" style="background:#60a5fa"></span>Routes
-      </button>
-      <button class="mt-btn" id="mt-terre" onclick="toggleLayer('terre')">
-        <span class="dot" style="background:#4ade80"></span>Chemins
-      </button>
-      <button class="mt-btn" id="mt-afr" onclick="toggleLayer('afr')">
-        <span class="dot" style="background:#fb923c"></span>AFR
-      </button>
+    <div class="map-togs" id="map-togs">
+      <button class="mt-btn" id="mt-route" onclick="toggleLayer('route')"><span class="dot" style="background:#60a5fa"></span>Routes</button>
+      <button class="mt-btn" id="mt-terre" onclick="toggleLayer('terre')"><span class="dot" style="background:#4ade80"></span>Chemins</button>
+      <button class="mt-btn" id="mt-afr"   onclick="toggleLayer('afr')">  <span class="dot" style="background:#fb923c"></span>AFR</button>
     </div>
 
     <button class="gpsfab blink" id="gpsfab" onclick="toggleGps()">
       <span>📍</span><span>Localisez-moi</span>
     </button>
   </div>
-</div>
+</div><!-- /body -->
+</div><!-- /wrap -->
+
+<!-- ═══ DRAWER MOBILE ═══ -->
+<button class="mob-fab" id="mob-fab" onclick="openDrawer()">📋 Menu</button>
+<div class="mob-overlay" id="mob-overlay" onclick="closeDrawer()"></div>
+<div class="mob-drawer" id="mob-drawer">
+  <div class="mob-handle"></div>
+  <div class="mob-tabs" id="mob-tabs">
+    <button class="tab on" onclick="doTab('reseau',this,'mob')">🗺️ Réseau</button>
+    <button class="tab"    onclick="doTab('circuits',this,'mob')">🥾 Circuits</button>
+    <button class="tab"    onclick="doTab('infos',this,'mob')">ℹ️ Infos</button>
+  </div>
+  <div class="mob-scroll" id="mob-scroll"><!-- contenu injecté dynamiquement --></div>
 </div>
 
 <script>
 // ══════════════════════════════════════════════════════════
-// TRACKS — 14 circuits originaux restaurés
+// VARIABLES GLOBALES — toutes déclarées ici, avant tout usage
+// ══════════════════════════════════════════════════════════
+const layers = {};
+let activeId      = null;
+let genLayer      = null;
+let genCoords     = null;
+let genGpsWatch   = null;
+let genUserMk     = null;
+let genMode       = 'pied';
+let departMode    = 'parking';
+let departCoords  = [47.818096, 1.801526];
+let departMarker  = null;
+let pickingDepart = false;
+let netReady      = false;
+let geoData       = {route:[], terre:[], afr:[]};
+let gpsWatchId    = null;
+let userMarker    = null;
+let userAccuracy  = null;
+let sideOpen      = true;
+let currentTab    = 'reseau';
+
+// ══════════════════════════════════════════════════════════
+// TRACKS — 14 circuits restaurés
 // ══════════════════════════════════════════════════════════
 const TRACKS = [
   {id:1, name:"Semi-marathon international de Mézières — 21.1 km", km:21.1, duree:"5h16", color:"#e74c3c",
-   coords:[[47.818795,1.80587],[47.818829,1.805848],[47.819003,1.805734],[47.81931,1.805574],[47.819492,1.806005],[47.819634,1.806373],[47.819163,1.806815],[47.818807,1.806615],[47.818696,1.806119],[47.81914,1.806018],[47.819304,1.805593],[47.819328,1.805068],[47.819289,1.804318],[47.81955,1.804053],[47.819806,1.803811],[47.820094,1.803242],[47.820451,1.8026],[47.820684,1.801997],[47.820937,1.80124],[47.821126,1.800715],[47.821414,1.799973],[47.821689,1.799343],[47.821913,1.798766],[47.821942,1.798235],[47.821534,1.797856],[47.821092,1.797319],[47.820664,1.796703],[47.820271,1.796121],[47.819937,1.795622],[47.81988,1.795161],[47.820251,1.794478],[47.820646,1.793828],[47.821073,1.793222],[47.821346,1.792813],[47.821651,1.79206],[47.821839,1.791235],[47.821961,1.790363],[47.822008,1.789567],[47.821899,1.788809],[47.821809,1.788075],[47.821953,1.787329],[47.822084,1.786482],[47.822253,1.785649],[47.822527,1.784905],[47.822871,1.784192],[47.823166,1.783375],[47.823556,1.782842],[47.824118,1.782542],[47.824659,1.782271],[47.825148,1.782286],[47.825475,1.783012],[47.818795,1.80587]]},
+   coords:[[47.818795,1.80587],[47.819492,1.806005],[47.819634,1.806373],[47.819163,1.806815],[47.818696,1.806119],[47.820451,1.8026],[47.820937,1.80124],[47.821689,1.799343],[47.821534,1.797856],[47.820664,1.796703],[47.81988,1.795161],[47.820646,1.793828],[47.821651,1.79206],[47.822008,1.789567],[47.822527,1.784905],[47.824118,1.782542],[47.825475,1.783012],[47.827541,1.781916],[47.829079,1.780121],[47.829945,1.771558],[47.830795,1.767894],[47.833257,1.764763],[47.836074,1.759217],[47.838225,1.757018],[47.839657,1.754767],[47.818795,1.80587]]},
   {id:2, name:"Semi-Marathon Mézières/Donjon — 21.5 km", km:21.5, duree:"5h22", color:"#3498db",
-   coords:[[47.817489,1.785474],[47.81715,1.785695],[47.817136,1.785808],[47.817311,1.786454],[47.817404,1.787359],[47.816929,1.787917],[47.816356,1.788384],[47.815991,1.788968],[47.81556,1.789573],[47.81502,1.790184],[47.814588,1.790752],[47.814163,1.791388],[47.813894,1.79175],[47.813472,1.792354],[47.81309,1.793013],[47.812548,1.79377],[47.812091,1.794338],[47.811709,1.79485],[47.811349,1.795373],[47.810953,1.795936],[47.810583,1.796431],[47.810074,1.797238],[47.809582,1.797856],[47.809043,1.798612],[47.808578,1.799287],[47.8081,1.799949],[47.807694,1.800514],[47.807202,1.801213],[47.806848,1.801738],[47.806329,1.80244],[47.805901,1.803318],[47.805706,1.804089],[47.805471,1.805017],[47.805288,1.805866],[47.805105,1.80659],[47.804914,1.807627],[47.804803,1.808523],[47.804607,1.809442],[47.804511,1.810005],[47.804341,1.810701],[47.80415,1.811603],[47.80389,1.812437],[47.803715,1.81333],[47.817092,1.785652]]},
+   coords:[[47.817489,1.785474],[47.81715,1.785695],[47.814588,1.790752],[47.812548,1.79377],[47.810074,1.797238],[47.808578,1.799287],[47.806329,1.80244],[47.804803,1.808523],[47.803715,1.81333],[47.800851,1.817036],[47.799182,1.821297],[47.797858,1.825319],[47.796423,1.836412],[47.795574,1.842858],[47.795335,1.847613],[47.797028,1.847494],[47.800494,1.845335],[47.802214,1.84415],[47.804478,1.847666],[47.808439,1.848624],[47.811947,1.8484],[47.813586,1.848733],[47.815738,1.85106],[47.816999,1.85007],[47.819754,1.849202],[47.821137,1.846089],[47.822267,1.841378],[47.82434,1.838742],[47.826852,1.83204],[47.829478,1.840667],[47.829903,1.843122],[47.830759,1.847329],[47.831296,1.851959],[47.832322,1.85913],[47.83533,1.860373],[47.838455,1.85971],[47.841898,1.858229],[47.844766,1.749253],[47.817092,1.785652]]},
   {id:3, name:"Autour de Mézières — 19.1 km", km:19.1, duree:"4h46", color:"#2ecc71",
-   coords:[[47.818634,1.804291],[47.818149,1.804275],[47.818193,1.804808],[47.818253,1.805473],[47.818295,1.806119],[47.818486,1.806713],[47.818898,1.807644],[47.819122,1.808231],[47.819483,1.808976],[47.819638,1.809386],[47.820233,1.810178],[47.820572,1.810634],[47.821004,1.810878],[47.821422,1.811127],[47.821803,1.811301],[47.822238,1.811616],[47.822505,1.81202],[47.822748,1.812343],[47.823041,1.813449],[47.823098,1.814159],[47.82301,1.815123],[47.823005,1.815708],[47.823056,1.816155],[47.823084,1.817168],[47.823026,1.817802],[47.823003,1.818713],[47.823012,1.819192],[47.818634,1.804291]]},
+   coords:[[47.818634,1.804291],[47.819483,1.808976],[47.821004,1.810878],[47.822748,1.812343],[47.823098,1.814159],[47.823084,1.817168],[47.823003,1.818713],[47.823035,1.819961],[47.82395,1.822631],[47.824946,1.825707],[47.826132,1.829282],[47.826925,1.831932],[47.827741,1.834201],[47.828941,1.8344],[47.830303,1.83292],[47.831919,1.831138],[47.833277,1.829601],[47.83479,1.827989],[47.836426,1.826107],[47.838416,1.823317],[47.839898,1.822821],[47.841617,1.824965],[47.843275,1.830837],[47.843562,1.833804],[47.843162,1.835083],[47.840627,1.836572],[47.838256,1.837994],[47.836309,1.839186],[47.834032,1.840606],[47.831121,1.842396],[47.829892,1.843048],[47.829096,1.839185],[47.828461,1.837445],[47.827476,1.836474],[47.825887,1.837635],[47.823477,1.839644],[47.822073,1.84255],[47.820764,1.847839],[47.818777,1.849726],[47.816879,1.850238],[47.815012,1.850442],[47.813662,1.848943],[47.810804,1.848772],[47.807538,1.848538],[47.804729,1.848059],[47.802476,1.84761],[47.801813,1.846304],[47.802184,1.844956],[47.800766,1.845112],[47.798645,1.846779],[47.796923,1.847609],[47.795503,1.842873],[47.795883,1.839323],[47.796635,1.83521],[47.797481,1.832929],[47.798629,1.829288],[47.79862,1.827015],[47.798627,1.823512],[47.79961,1.819049],[47.800685,1.817147],[47.802617,1.815266],[47.803777,1.812511],[47.804542,1.809324],[47.805059,1.806171],[47.805654,1.803066],[47.806658,1.801534],[47.808429,1.799194],[47.810696,1.796046],[47.812548,1.79377],[47.814352,1.791549],[47.816327,1.794781],[47.818754,1.797434],[47.820217,1.798734],[47.821037,1.800725],[47.820214,1.802786],[47.81937,1.804182]]},
   {id:4, name:"PR Chemin des vallées C3 — 14.3 km", km:14.3, duree:"3h34", color:"#f39c12",
-   coords:[[47.81812,1.80128],[47.81868,1.80417],[47.8195,1.8041],[47.81977,1.80389],[47.82115,1.80035],[47.81947,1.79751],[47.81882,1.79734],[47.81787,1.7966],[47.81615,1.79451],[47.81419,1.79129],[47.80583,1.80287],[47.80335,1.81468],[47.80044,1.81729],[47.79906,1.82128],[47.79845,1.82369],[47.79768,1.82523],[47.79894,1.82781],[47.79822,1.83068],[47.7967,1.83463],[47.79569,1.84025],[47.79499,1.84751],[47.7977,1.84733],[47.80226,1.84416],[47.8016,1.84699],[47.80356,1.84806],[47.804,1.84783],[47.8099,1.84879],[47.81275,1.84824],[47.81598,1.85154],[47.81653,1.85055],[47.81785,1.84999],[47.81875,1.84969],[47.81961,1.84935],[47.82039,1.84875],[47.82099,1.84695],[47.82137,1.8451],[47.82223,1.84137],[47.82387,1.83918],[47.82825,1.83592],[47.82304,1.82],[47.82313,1.8133],[47.82289,1.8124],[47.82212,1.81137],[47.82047,1.81038],[47.81975,1.80948],[47.81832,1.80622],[47.81942,1.80589],[47.81924,1.80493],[47.81913,1.80414]]},
+   coords:[[47.81812,1.80128],[47.81868,1.80417],[47.8195,1.8041],[47.82115,1.80035],[47.81419,1.79129],[47.80583,1.80287],[47.80044,1.81729],[47.79845,1.82369],[47.7967,1.83463],[47.79499,1.84751],[47.8099,1.84879],[47.81598,1.85154],[47.81961,1.84935],[47.82099,1.84695],[47.82223,1.84137],[47.82825,1.83592],[47.82304,1.82],[47.82313,1.8133],[47.82047,1.81038],[47.81832,1.80622],[47.81913,1.80414]]},
   {id:5, name:"Le bourg / Le donjon — 10.3 km", km:10.3, duree:"2h34", color:"#9b59b6",
-   coords:[[47.829788,1.817394],[47.829953,1.81754],[47.830331,1.817761],[47.830133,1.818062],[47.829709,1.818402],[47.829518,1.818506],[47.82923,1.81865],[47.828909,1.818764],[47.828449,1.818813],[47.828093,1.818806],[47.827903,1.818816],[47.827165,1.819006],[47.826868,1.819089],[47.826,1.819142],[47.825097,1.818983],[47.824717,1.819007],[47.824194,1.819008],[47.823449,1.818965],[47.823077,1.819102],[47.82302,1.820154],[47.82341,1.821331],[47.823659,1.82214],[47.823808,1.822643],[47.823992,1.823435],[47.824278,1.824086],[47.824592,1.824986],[47.824932,1.825924],[47.825276,1.827065],[47.825496,1.827937],[47.82584,1.828903],[47.826085,1.829224],[47.826426,1.830374],[47.826715,1.831418],[47.826946,1.832042],[47.827278,1.833124],[47.827693,1.834282],[47.828040,1.835582],[47.828451,1.83692],[47.828898,1.838492],[47.829276,1.839625],[47.829477,1.840631],[47.829648,1.841927],[47.82971,1.842286],[47.829883,1.843299],[47.829972,1.844991],[47.830384,1.846337],[47.830778,1.848677],[47.830748,1.850304],[47.831088,1.8515],[47.831596,1.85283],[47.832069,1.857097],[47.832362,1.859123],[47.833206,1.860733],[47.834143,1.860482],[47.835335,1.860373],[47.836383,1.860092],[47.837431,1.859893],[47.838665,1.85969],[47.839686,1.859355],[47.840704,1.858779],[47.841632,1.85834],[47.842702,1.857713],[47.843767,1.857083],[47.844715,1.856461],[47.845645,1.855981],[47.846702,1.85543],[47.847614,1.854958],[47.848607,1.85423],[47.849376,1.853856],[47.849734,1.853362],[47.848892,1.851177],[47.848446,1.849477],[47.847688,1.846703],[47.846577,1.84179],[47.846237,1.837463],[47.845481,1.834502],[47.844657,1.831438],[47.844072,1.827675],[47.843441,1.823],[47.842692,1.821937],[47.841701,1.821429],[47.840029,1.8207],[47.838398,1.819725],[47.837033,1.818058],[47.835476,1.817367],[47.833803,1.817385],[47.832061,1.817818],[47.830475,1.817933],[47.830244,1.817843]]},
+   coords:[[47.829788,1.817394],[47.830331,1.817761],[47.829709,1.818402],[47.82923,1.81865],[47.828449,1.818813],[47.827771,1.818849],[47.826789,1.819107],[47.826,1.819142],[47.824996,1.818967],[47.823449,1.818965],[47.823015,1.819348],[47.82341,1.821331],[47.824278,1.824086],[47.824932,1.825924],[47.825804,1.82861],[47.826477,1.830242],[47.826852,1.831783],[47.827541,1.833893],[47.82804,1.835582],[47.828589,1.837404],[47.829112,1.839118],[47.829538,1.840927],[47.829648,1.841927],[47.82996,1.844458],[47.830295,1.846067],[47.830721,1.850002],[47.831165,1.85177],[47.831817,1.853624],[47.832049,1.857266],[47.832362,1.859123],[47.833945,1.860523],[47.835359,1.860363],[47.837059,1.859941],[47.838665,1.85969],[47.840507,1.858878],[47.842174,1.858033],[47.843603,1.857216],[47.845099,1.85625],[47.846702,1.85543],[47.848306,1.854432],[47.849376,1.853856],[47.849394,1.852519],[47.848892,1.851177],[47.847688,1.846703],[47.846463,1.840316],[47.845481,1.834502],[47.844304,1.829147],[47.843441,1.823],[47.842532,1.82178],[47.840849,1.820997],[47.838237,1.819555],[47.836705,1.8177],[47.834422,1.817446],[47.832574,1.817718],[47.830475,1.817933],[47.830244,1.817843]]},
   {id:6, name:"Le bourg la scierie — 10.6 km", km:10.6, duree:"2h38", color:"#1abc9c",
-   coords:[[47.81867,1.804129],[47.81892,1.804119],[47.819213,1.804105],[47.819706,1.803931],[47.82001,1.803551],[47.820422,1.802194],[47.820837,1.801223],[47.821457,1.799923],[47.82183,1.799003],[47.822222,1.798124],[47.822481,1.797125],[47.822979,1.795637],[47.823372,1.794685],[47.823439,1.793549],[47.822788,1.792862],[47.822341,1.792328],[47.821762,1.791508],[47.821909,1.790702],[47.821997,1.789453],[47.821879,1.788711],[47.821902,1.787591],[47.822096,1.786421],[47.822237,1.785661],[47.821413,1.785329],[47.820807,1.785031],[47.82009,1.785649],[47.819361,1.786206],[47.818861,1.78619],[47.817528,1.786996],[47.817241,1.787699],[47.816378,1.788208],[47.816049,1.788767],[47.815497,1.789592],[47.814898,1.790301],[47.814481,1.790928],[47.813598,1.792066],[47.812882,1.793083],[47.812025,1.794349],[47.811307,1.795372],[47.810582,1.796403],[47.809671,1.797748],[47.808693,1.799007],[47.80748,1.799358],[47.807166,1.801166],[47.806336,1.802353],[47.805621,1.803785],[47.805164,1.80602],[47.804779,1.808325],[47.804373,1.810099],[47.804024,1.811943],[47.803497,1.814303],[47.801291,1.816521],[47.79987,1.81878],[47.799266,1.820559],[47.800626,1.816999],[47.802024,1.815758],[47.803418,1.81438],[47.804085,1.811204],[47.804871,1.807646],[47.805247,1.80548],[47.806091,1.802513],[47.807878,1.800108],[47.809864,1.797288],[47.811357,1.795248],[47.812809,1.793211],[47.81368,1.791965],[47.814881,1.792488],[47.81521,1.793311],[47.815938,1.794401],[47.817394,1.795698],[47.817964,1.796753],[47.818855,1.797511],[47.819516,1.797597],[47.82004,1.798259],[47.820818,1.799721],[47.821145,1.800471],[47.820508,1.802116],[47.819866,1.803679],[47.819292,1.804201],[47.818396,1.804208]]},
+   coords:[[47.81867,1.804129],[47.819706,1.803931],[47.820422,1.802194],[47.821457,1.799923],[47.82235,1.797631],[47.823372,1.794685],[47.823225,1.793328],[47.821762,1.791508],[47.821997,1.789453],[47.821902,1.787591],[47.822237,1.785661],[47.820807,1.785031],[47.819361,1.786206],[47.817528,1.786996],[47.816378,1.788208],[47.815497,1.789592],[47.814481,1.790928],[47.813135,1.792698],[47.811687,1.794838],[47.810583,1.796431],[47.809043,1.798612],[47.807694,1.800514],[47.806145,1.802624],[47.805164,1.80602],[47.804779,1.808325],[47.804145,1.810711],[47.803497,1.814303],[47.801291,1.816521],[47.799158,1.820961],[47.800626,1.816999],[47.802732,1.815124],[47.803769,1.812807],[47.804637,1.809225],[47.805329,1.8051],[47.806676,1.801608],[47.808577,1.799096],[47.810697,1.796061],[47.812589,1.793499],[47.814086,1.791344],[47.815701,1.794061],[47.817394,1.795698],[47.818855,1.797511],[47.820595,1.799374],[47.820653,1.801701],[47.819866,1.803679],[47.818628,1.804242]]},
   {id:7, name:"PR La croix glaneuses C2 — 8.3 km", km:8.3, duree:"2h04", color:"#e67e22",
-   coords:[[47.818294,1.801781],[47.818521,1.801816],[47.818716,1.802663],[47.818797,1.803284],[47.818793,1.803829],[47.818824,1.804208],[47.819388,1.804188],[47.81975,1.804042],[47.820082,1.803345],[47.82045,1.802246],[47.820912,1.801058],[47.821203,1.800395],[47.821763,1.800822],[47.822188,1.801184],[47.822607,1.801463],[47.822969,1.801715],[47.823329,1.802094],[47.823814,1.802553],[47.824362,1.802919],[47.82488,1.803334],[47.825789,1.804679],[47.826748,1.805574],[47.827969,1.806709],[47.828602,1.807833],[47.828875,1.808412],[47.828526,1.808817],[47.828031,1.809226],[47.827628,1.80954],[47.827100,1.810015],[47.827443,1.810889],[47.827928,1.811792],[47.828566,1.812955],[47.829387,1.814468],[47.830009,1.815581],[47.830968,1.817128],[47.831724,1.817902],[47.832754,1.830302],[47.831403,1.831636],[47.830412,1.832758],[47.829595,1.83362],[47.828964,1.834397],[47.828355,1.835707],[47.828191,1.835438],[47.827661,1.834251],[47.826886,1.832128],[47.826181,1.829637],[47.825578,1.828035],[47.825064,1.826549],[47.824436,1.824327],[47.823758,1.822336],[47.823072,1.818624],[47.823088,1.816789],[47.823049,1.816081],[47.823066,1.815797],[47.823059,1.814096],[47.82303,1.813415],[47.822705,1.812475],[47.822139,1.811706],[47.820785,1.810798],[47.81973,1.809566],[47.818737,1.807423],[47.818314,1.801756]]},
+   coords:[[47.818294,1.801781],[47.818716,1.802663],[47.818824,1.804208],[47.81975,1.804042],[47.820552,1.801997],[47.821523,1.80063],[47.822607,1.801463],[47.823329,1.802094],[47.824362,1.802919],[47.825789,1.804679],[47.827969,1.806709],[47.828875,1.808412],[47.828031,1.809226],[47.827100,1.810015],[47.827928,1.811792],[47.829387,1.814468],[47.830405,1.816236],[47.831268,1.81774],[47.832754,1.830302],[47.831403,1.831636],[47.829595,1.83362],[47.828355,1.835707],[47.827248,1.833262],[47.826257,1.829901],[47.825464,1.827801],[47.824436,1.824327],[47.823072,1.818624],[47.823049,1.816081],[47.822946,1.813362],[47.821997,1.811564],[47.820776,1.810778],[47.819708,1.809548],[47.818527,1.806971],[47.818314,1.801756]]},
   {id:8, name:"Bourg et commerces Mareau — 8.7 km", km:8.7, duree:"2h10", color:"#e91e63",
-   coords:[[47.818574,1.804204],[47.818955,1.804276],[47.819928,1.803523],[47.820512,1.801906],[47.820949,1.800869],[47.821263,1.800613],[47.821788,1.800934],[47.822451,1.801427],[47.823185,1.801945],[47.823845,1.802609],[47.824799,1.803265],[47.825607,1.804365],[47.82599,1.804977],[47.826696,1.805524],[47.827578,1.806239],[47.828025,1.806357],[47.828661,1.805779],[47.829323,1.805184],[47.830073,1.804228],[47.830695,1.802981],[47.831453,1.801749],[47.83182,1.801067],[47.832613,1.801166],[47.833335,1.80146],[47.833999,1.801232],[47.834467,1.801916],[47.83521,1.803303],[47.836090,1.804296],[47.836653,1.804715],[47.837455,1.805304],[47.838485,1.806021],[47.839618,1.806472],[47.840658,1.807157],[47.841744,1.807478],[47.842779,1.807711],[47.843052,1.806151],[47.843476,1.804044],[47.843962,1.803208],[47.844723,1.802268],[47.845445,1.801346],[47.846062,1.800566],[47.846515,1.799869],[47.845768,1.798459],[47.845056,1.79712],[47.844179,1.797174],[47.843588,1.801416],[47.843531,1.803347],[47.842804,1.804297],[47.841907,1.805236],[47.841129,1.806338],[47.840506,1.806948],[47.839514,1.806421],[47.838172,1.805854],[47.836802,1.804951],[47.835562,1.803841],[47.83487,1.802952],[47.834160,1.801115],[47.833264,1.799432],[47.832117,1.800441],[47.830844,1.80266],[47.829504,1.804832],[47.828215,1.806015],[47.826451,1.80566],[47.825326,1.804605],[47.823507,1.802675],[47.821673,1.801052],[47.820758,1.800845],[47.820161,1.802415],[47.819553,1.803965],[47.819077,1.804153],[47.81863,1.804254]]},
+   coords:[[47.818574,1.804204],[47.819928,1.803523],[47.820671,1.80158],[47.821531,1.800778],[47.822712,1.801598],[47.823845,1.802609],[47.824799,1.803265],[47.825607,1.804365],[47.826696,1.805524],[47.827792,1.806404],[47.828661,1.805779],[47.829529,1.804964],[47.830695,1.802981],[47.831820,1.801067],[47.833335,1.80146],[47.834625,1.802303],[47.835676,1.803865],[47.836942,1.804919],[47.838251,1.805828],[47.839881,1.806642],[47.841481,1.807397],[47.842779,1.807711],[47.843177,1.805415],[47.843736,1.803473],[47.844895,1.802069],[47.846062,1.800566],[47.846366,1.7995],[47.845613,1.798201],[47.844179,1.797174],[47.843588,1.801416],[47.843504,1.803735],[47.842312,1.804783],[47.841313,1.806055],[47.840217,1.806794],[47.838485,1.806021],[47.836802,1.804951],[47.835202,1.803412],[47.834160,1.801115],[47.832117,1.800441],[47.830844,1.80266],[47.829504,1.804832],[47.827658,1.806485],[47.825652,1.805052],[47.823507,1.802675],[47.821673,1.801052],[47.820758,1.800845],[47.820161,1.802415],[47.819553,1.803965],[47.818627,1.804144]]},
   {id:9, name:"Le buisson / Trembleau — 7.2 km", km:7.2, duree:"1h48", color:"#00bcd4",
-   coords:[[47.818912,1.80635],[47.818481,1.806204],[47.818433,1.806556],[47.818736,1.807287],[47.818951,1.807783],[47.819092,1.808307],[47.819372,1.809041],[47.819788,1.809661],[47.820217,1.810237],[47.820712,1.810692],[47.821254,1.811003],[47.821829,1.811272],[47.822273,1.81176],[47.822712,1.812374],[47.822936,1.813483],[47.822944,1.815283],[47.822858,1.817144],[47.822929,1.818331],[47.822948,1.819859],[47.823272,1.820869],[47.823509,1.821628],[47.823765,1.822418],[47.824172,1.82371],[47.824701,1.825308],[47.825023,1.82637],[47.825344,1.827416],[47.825641,1.828387],[47.826074,1.829345],[47.826426,1.830374],[47.826682,1.83146],[47.826989,1.832493],[47.827319,1.833259],[47.827697,1.834261],[47.828059,1.835277],[47.828356,1.835303],[47.828753,1.834693],[47.829049,1.834311],[47.829523,1.833814],[47.83061,1.83256],[47.832065,1.830981],[47.832853,1.830234],[47.833629,1.829315],[47.834735,1.828147],[47.836015,1.826791],[47.837318,1.825421],[47.838403,1.823733],[47.838595,1.823257],[47.838691,1.822269],[47.837982,1.821684],[47.836767,1.820755],[47.835917,1.820002],[47.834883,1.818569],[47.833831,1.817429],[47.832261,1.817759],[47.830577,1.817929],[47.829508,1.818635],[47.828139,1.818805],[47.826748,1.819179],[47.825434,1.819018],[47.824033,1.81894],[47.82324,1.819],[47.822991,1.818132],[47.822952,1.816012],[47.822964,1.815734],[47.823025,1.814245],[47.822841,1.812833],[47.822158,1.811759],[47.820608,1.810663],[47.819708,1.809548],[47.819114,1.808405],[47.818736,1.807419]]},
+   coords:[[47.818912,1.80635],[47.818433,1.806556],[47.818951,1.807783],[47.819372,1.809041],[47.820217,1.810237],[47.821254,1.811003],[47.822273,1.81176],[47.822936,1.813483],[47.822858,1.817144],[47.822929,1.818331],[47.823272,1.820869],[47.823765,1.822418],[47.824701,1.825308],[47.825344,1.827416],[47.826074,1.829345],[47.826682,1.83146],[47.827489,1.833772],[47.828059,1.835277],[47.828753,1.834693],[47.829523,1.833814],[47.830308,1.832932],[47.831033,1.832091],[47.832385,1.830679],[47.833629,1.829315],[47.834878,1.82798],[47.836348,1.826423],[47.837625,1.825056],[47.838713,1.823016],[47.838691,1.822269],[47.837621,1.821418],[47.836205,1.820406],[47.834883,1.818569],[47.833627,1.81742],[47.832061,1.817818],[47.830577,1.817929],[47.829116,1.818755],[47.827556,1.818972],[47.825434,1.819018],[47.824033,1.81894],[47.82324,1.819],[47.822986,1.81783],[47.822952,1.816012],[47.823022,1.814245],[47.822735,1.812574],[47.821471,1.81119],[47.820138,1.810111],[47.819114,1.808405],[47.818736,1.807419]]},
   {id:10, name:"Le bourg les élus — 4.4 km", km:4.4, duree:"1h06", color:"#8bc34a",
-   coords:[[47.818601,1.804176],[47.819454,1.804111],[47.819954,1.803493],[47.820329,1.802539],[47.820618,1.801501],[47.820907,1.800843],[47.821075,1.800256],[47.820749,1.799747],[47.820185,1.798655],[47.819825,1.797871],[47.819381,1.797543],[47.818981,1.797514],[47.818139,1.796898],[47.817774,1.796482],[47.8177,1.796319],[47.817402,1.795717],[47.817100,1.795371],[47.816659,1.79498],[47.816038,1.7945],[47.815604,1.793857],[47.815178,1.793111],[47.814847,1.792179],[47.814399,1.790967],[47.814887,1.790266],[47.815139,1.789959],[47.815594,1.789509],[47.816140,1.788639],[47.816499,1.788005],[47.816794,1.787849],[47.817238,1.787727],[47.817486,1.786932],[47.818206,1.786581],[47.818896,1.786147],[47.819472,1.786173],[47.820094,1.785656],[47.820425,1.785408],[47.820866,1.78497],[47.821293,1.785078],[47.821475,1.785472],[47.821878,1.785466],[47.822229,1.785738],[47.82205,1.786784],[47.821926,1.787437],[47.82178,1.788238],[47.821866,1.78873],[47.821960,1.789563],[47.821951,1.79022],[47.821826,1.791357],[47.822209,1.792176],[47.822894,1.79296],[47.823385,1.793462],[47.823646,1.793778],[47.823438,1.794489],[47.823084,1.795445],[47.822717,1.796389],[47.822450,1.797284],[47.822234,1.798179],[47.821768,1.799134],[47.821387,1.799962],[47.821052,1.800537],[47.820765,1.801427],[47.820135,1.802963],[47.819864,1.803589],[47.819449,1.804118],[47.818671,1.804184],[47.818475,1.804244]]},
+   coords:[[47.818601,1.804176],[47.819715,1.803944],[47.820451,1.802025],[47.820907,1.800843],[47.820749,1.799747],[47.820071,1.798371],[47.819381,1.797543],[47.818139,1.796898],[47.817402,1.795717],[47.816659,1.79498],[47.815604,1.793857],[47.814739,1.792179],[47.814399,1.790967],[47.815252,1.789859],[47.816140,1.788639],[47.816794,1.787849],[47.817604,1.786863],[47.818896,1.786147],[47.819586,1.786077],[47.820425,1.785408],[47.821293,1.785078],[47.82146,1.785288],[47.822229,1.785738],[47.82205,1.786784],[47.82178,1.788238],[47.821960,1.789563],[47.821829,1.791357],[47.822706,1.79278],[47.823385,1.793462],[47.823438,1.794489],[47.822854,1.79615],[47.822234,1.798179],[47.821387,1.799962],[47.820765,1.801427],[47.820135,1.802963],[47.819864,1.803589],[47.818671,1.804184]]},
   {id:11, name:"Le bourg / Les élus / Manthelon — 5.0 km", km:5.0, duree:"1h15", color:"#ff5722",
-   coords:[[47.81883,1.806007],[47.819075,1.805994],[47.819406,1.805856],[47.819363,1.805663],[47.819348,1.805066],[47.819346,1.80488],[47.819391,1.804242],[47.819821,1.803896],[47.820273,1.802805],[47.820856,1.801092],[47.821102,1.800388],[47.820878,1.800001],[47.820393,1.799207],[47.819679,1.797835],[47.819644,1.796753],[47.819793,1.795583],[47.820155,1.794781],[47.820648,1.793906],[47.820998,1.793355],[47.82147,1.792498],[47.821762,1.791496],[47.821940,1.790086],[47.821881,1.788935],[47.821898,1.787574],[47.822048,1.786599],[47.822237,1.785672],[47.82186,1.785482],[47.821450,1.785175],[47.820828,1.78504],[47.820358,1.78553],[47.819580,1.786084],[47.818930,1.786085],[47.818384,1.784451],[47.818004,1.784677],[47.817141,1.785249],[47.816152,1.785862],[47.815063,1.786539],[47.813793,1.787227],[47.812853,1.787795],[47.812479,1.788648],[47.812813,1.78936],[47.813557,1.790578],[47.814371,1.791445],[47.814848,1.79235],[47.815322,1.793395],[47.815673,1.794057],[47.816435,1.794849],[47.817178,1.795464],[47.817575,1.796071],[47.818091,1.796778],[47.818658,1.79732],[47.819207,1.797541],[47.819862,1.797952],[47.820159,1.798526],[47.820677,1.7995],[47.821136,1.800287],[47.820968,1.800968],[47.820612,1.801808],[47.820135,1.802968],[47.819864,1.803589],[47.819315,1.804344],[47.819296,1.80468],[47.81933,1.805374],[47.819304,1.806047],[47.819231,1.806049]]},
+   coords:[[47.81883,1.806007],[47.819406,1.805856],[47.819351,1.805107],[47.819391,1.804242],[47.819821,1.803896],[47.820856,1.801092],[47.820878,1.800001],[47.820326,1.799091],[47.819679,1.797835],[47.819644,1.796753],[47.820155,1.794781],[47.820998,1.793355],[47.821762,1.791496],[47.821898,1.787574],[47.822237,1.785672],[47.82186,1.785482],[47.821450,1.785175],[47.820358,1.78553],[47.819580,1.786084],[47.818930,1.786085],[47.818004,1.784677],[47.817141,1.785249],[47.815063,1.786539],[47.813793,1.787227],[47.812479,1.788648],[47.813557,1.790578],[47.814848,1.79235],[47.815673,1.794057],[47.817178,1.795464],[47.818658,1.79732],[47.820159,1.798526],[47.820677,1.7995],[47.820968,1.800968],[47.820135,1.802968],[47.819864,1.803589],[47.819295,1.80468],[47.81933,1.805374],[47.819231,1.806049]]},
   {id:12, name:"Le tour du bourg — 3.1 km", km:3.1, duree:"46 min", color:"#607d8b",
-   coords:[[47.818566,1.804251],[47.818837,1.804315],[47.819207,1.804262],[47.819273,1.804558],[47.81931,1.804878],[47.819452,1.805541],[47.819641,1.80608],[47.819647,1.806417],[47.819208,1.806759],[47.818994,1.806847],[47.818874,1.806476],[47.818702,1.806128],[47.81863,1.806048],[47.818505,1.806141],[47.818362,1.806433],[47.818572,1.806983],[47.818926,1.807868],[47.819118,1.808239],[47.819463,1.808956],[47.819778,1.809549],[47.820013,1.809952],[47.820508,1.810452],[47.820861,1.810795],[47.821422,1.811088],[47.822021,1.811068],[47.822802,1.810585],[47.823246,1.810203],[47.823651,1.809957],[47.824207,1.809556],[47.824883,1.809022],[47.825543,1.808545],[47.826251,1.807989],[47.826903,1.807465],[47.827419,1.806944],[47.827765,1.806484],[47.827629,1.806323],[47.826965,1.805675],[47.826093,1.805016],[47.825394,1.804028],[47.824166,1.802733],[47.823278,1.801994],[47.822143,1.801149],[47.821324,1.800525],[47.821064,1.800416],[47.820957,1.800853],[47.820488,1.802017],[47.819834,1.803455],[47.819089,1.80413],[47.818568,1.804138]]},
+   coords:[[47.818566,1.804251],[47.819207,1.804262],[47.819452,1.805541],[47.819641,1.80608],[47.819208,1.806759],[47.818874,1.806476],[47.818362,1.806433],[47.818926,1.807868],[47.819463,1.808956],[47.820013,1.809952],[47.821422,1.811088],[47.822802,1.810585],[47.823651,1.809957],[47.824883,1.809022],[47.826251,1.807989],[47.827419,1.806944],[47.827629,1.806323],[47.826093,1.805016],[47.824794,1.803199],[47.823278,1.801994],[47.822055,1.801094],[47.821064,1.800416],[47.820957,1.800853],[47.820204,1.802647],[47.819089,1.80413],[47.818668,1.804138]]},
   {id:13, name:"PR de la Butte des Élus C1 — 6.9 km", km:6.9, duree:"1h43", color:"#795548",
-   coords:[[47.818734,1.806147],[47.819376,1.805965],[47.819309,1.80477],[47.818913,1.804269],[47.818604,1.802158],[47.81858,1.801829],[47.818507,1.801786],[47.818692,1.802901],[47.818807,1.804176],[47.81923,1.804131],[47.819798,1.803893],[47.820141,1.803105],[47.820689,1.801781],[47.821009,1.80093],[47.821100,1.800223],[47.820615,1.799389],[47.819544,1.797704],[47.818807,1.797489],[47.817621,1.796147],[47.817026,1.795345],[47.816474,1.794904],[47.815766,1.794104],[47.814791,1.792195],[47.814446,1.790917],[47.815116,1.790122],[47.816208,1.788702],[47.816906,1.787881],[47.817413,1.78741],[47.817828,1.786843],[47.818597,1.786239],[47.819164,1.786094],[47.819734,1.785944],[47.820311,1.7855],[47.820925,1.785007],[47.821482,1.785499],[47.822164,1.78547],[47.822724,1.78483],[47.823215,1.786334],[47.823692,1.787855],[47.824293,1.788673],[47.824977,1.78963],[47.825267,1.790619],[47.824876,1.791219],[47.824215,1.792549],[47.82402,1.793075],[47.823653,1.794167],[47.823182,1.795333],[47.822854,1.79615],[47.822635,1.796907],[47.822448,1.797558],[47.822262,1.798873],[47.822826,1.800683],[47.823141,1.801835],[47.823481,1.802181],[47.824272,1.802774],[47.824976,1.803396],[47.825498,1.804175],[47.825697,1.804524],[47.826461,1.805325],[47.826975,1.805695],[47.827526,1.806221],[47.82778,1.806452],[47.827484,1.806957],[47.827105,1.807443],[47.826571,1.807889],[47.825523,1.808723],[47.824644,1.809413],[47.823391,1.810354],[47.822515,1.811127],[47.821578,1.811197],[47.820312,1.810345],[47.819396,1.808875],[47.818861,1.807576],[47.818409,1.806544],[47.818639,1.80603]]},
+   coords:[[47.818734,1.806147],[47.819376,1.805965],[47.819221,1.804261],[47.818604,1.802158],[47.818637,1.802544],[47.818807,1.804176],[47.819798,1.803893],[47.820689,1.801781],[47.821009,1.80093],[47.820615,1.799389],[47.818807,1.797489],[47.817621,1.796147],[47.816474,1.794904],[47.815536,1.793677],[47.814446,1.790917],[47.816208,1.788702],[47.817413,1.78741],[47.818597,1.786239],[47.819734,1.785944],[47.820925,1.785007],[47.822164,1.78547],[47.823215,1.786334],[47.824293,1.788673],[47.825267,1.790619],[47.824215,1.792549],[47.823182,1.795333],[47.822448,1.797558],[47.822826,1.800683],[47.823481,1.802181],[47.824976,1.803396],[47.826461,1.805325],[47.827526,1.806221],[47.827484,1.806957],[47.825523,1.808723],[47.823135,1.810552],[47.821578,1.811197],[47.820312,1.810345],[47.818861,1.807576],[47.818639,1.80603]]},
   {id:14, name:"Bois-Le-Roi — 11.8 km", km:11.8, duree:"2h57", color:"#673ab7",
-   coords:[[47.818225,1.803691],[47.818075,1.802016],[47.818046,1.800871],[47.817995,1.799746],[47.817856,1.798063],[47.817835,1.797636],[47.81762,1.796128],[47.81688,1.795159],[47.816109,1.79455],[47.815593,1.793846],[47.81498,1.792707],[47.814629,1.791986],[47.81419,1.791272],[47.813122,1.790067],[47.812683,1.789221],[47.812043,1.788051],[47.811406,1.786763],[47.810806,1.785772],[47.809826,1.785092],[47.809163,1.784717],[47.808049,1.785064],[47.80724,1.785958],[47.806469,1.786322],[47.805007,1.787048],[47.803934,1.787677],[47.802615,1.788605],[47.801375,1.789712],[47.799929,1.790964],[47.799087,1.792079],[47.798376,1.793199],[47.797442,1.794057],[47.796013,1.794827],[47.794725,1.795918],[47.793714,1.796444],[47.792675,1.796931],[47.791778,1.798162],[47.791094,1.799418],[47.790562,1.800799],[47.790176,1.801616],[47.789457,1.803022],[47.788127,1.804007],[47.786689,1.805203],[47.785330,1.806444],[47.784647,1.806883],[47.784328,1.807436],[47.783147,1.808647],[47.782509,1.809955],[47.781917,1.810596],[47.781253,1.811016],[47.782531,1.80978],[47.783441,1.808233],[47.784335,1.807204],[47.785593,1.805973],[47.786814,1.804934],[47.788528,1.803685],[47.790011,1.801892],[47.790651,1.800391],[47.791408,1.79862],[47.792387,1.797103],[47.793703,1.796482],[47.794665,1.795793],[47.795739,1.794895],[47.797064,1.794111],[47.798528,1.792817],[47.799665,1.791151],[47.800915,1.790068],[47.801892,1.78928],[47.803002,1.788299],[47.804541,1.787279],[47.806090,1.786195],[47.807709,1.785389],[47.808605,1.7844],[47.809729,1.78486],[47.810718,1.785708],[47.811526,1.786925],[47.812287,1.788275],[47.813204,1.789987],[47.814395,1.791341],[47.815434,1.793484],[47.816578,1.79489],[47.817744,1.796276],[47.817937,1.797753],[47.818048,1.800507],[47.8181,1.801859],[47.818266,1.802876],[47.818374,1.805696]]}
+   coords:[[47.818225,1.803691],[47.817856,1.798063],[47.81762,1.796128],[47.815593,1.793846],[47.814629,1.791986],[47.812683,1.789221],[47.811406,1.786763],[47.810806,1.785772],[47.809163,1.784717],[47.808049,1.785064],[47.806090,1.786195],[47.803934,1.787677],[47.801375,1.789712],[47.799087,1.792079],[47.797731,1.793803],[47.795716,1.795007],[47.793714,1.796444],[47.791778,1.798162],[47.790562,1.800799],[47.789457,1.803022],[47.787235,1.804813],[47.785330,1.806444],[47.784328,1.807436],[47.782509,1.809955],[47.781253,1.811016],[47.784335,1.807204],[47.786814,1.804934],[47.789472,1.802962],[47.791408,1.79862],[47.793703,1.796482],[47.795739,1.794895],[47.798528,1.792817],[47.801892,1.78928],[47.804541,1.787279],[47.807709,1.785389],[47.808605,1.7844],[47.810718,1.785708],[47.812287,1.788275],[47.814395,1.791341],[47.816578,1.79489],[47.817744,1.796276],[47.818048,1.800507],[47.818266,1.802876],[47.818374,1.805696]]}
 ];
 
 const POIS = [
-  {lat:47.818096,lng:1.801526, ico:"▶",  name:"Parking des randonneurs",  desc:"Point de départ commun. Abri disponible."},
-  {lat:47.817738,lng:1.796344, ico:"⛰️", name:"Butte des Élus",           desc:"Tumulus gaulois classé 1924 — 12 m de haut."},
-  {lat:47.816134,lng:1.804313, ico:"🏰", name:"Château de Mézières",      desc:"XVIIe s., restauré en 1883 dans le style néo-Louis XIII."},
+  {lat:47.818096,lng:1.801526, ico:"▶",  name:"Parking des randonneurs",  desc:"Point de départ commun."},
+  {lat:47.817738,lng:1.796344, ico:"⛰️", name:"Butte des Élus",           desc:"Tumulus gaulois classé 1924."},
+  {lat:47.816134,lng:1.804313, ico:"🏰", name:"Château de Mézières",      desc:"XVIIe s., style néo-Louis XIII."},
   {lat:47.818313,lng:1.802816, ico:"⛪", name:"Église Saint-Avit",        desc:"XVe s., reconstruite en 1891."},
-  {lat:47.832896,lng:1.816839, ico:"🍷", name:"Vignes AOC Orléans-Cléry", desc:"Appellation Orléans-Cléry, Cabernet Franc."},
+  {lat:47.832896,lng:1.816839, ico:"🍷", name:"Vignes AOC Orléans-Cléry", desc:"Appellation Orléans-Cléry."},
 ];
 
 // ══════════════════════════════════════════════════════════
-// CARTE
+// CONTENU DES ONGLETS (HTML partagé desktop/mobile)
+// ══════════════════════════════════════════════════════════
+function htmlReseau() {
+  return `<div class="net-wrap">
+  <div class="sec-lbl">Voies &amp; chemins</div>
+  <div class="net-st" id="net-status"><span class="spin"></span> Chargement…</div>
+  <div id="lyr-cards" style="display:none;flex-direction:column;gap:6px">
+    <div class="lyr-card" id="lc-route" onclick="toggleLayer('route')">
+      <div class="lyr-dot" style="background:#60a5fa"></div>
+      <div style="flex:1"><div class="lyr-name">Routes &amp; rues</div><div class="lyr-desc">Revêtement dur · incl. inter-communes</div></div>
+      <div class="lyr-sw"></div>
+    </div>
+    <div class="lyr-card" id="lc-terre" onclick="toggleLayer('terre')">
+      <div class="lyr-dot" style="background:#4ade80"></div>
+      <div style="flex:1"><div class="lyr-name">Chemins de terre</div><div class="lyr-desc">Communaux · Piétons &amp; vélos</div></div>
+      <div class="lyr-sw"></div>
+    </div>
+    <div class="lyr-card" id="lc-afr" onclick="toggleLayer('afr')">
+      <div class="lyr-dot" style="background:#fb923c"></div>
+      <div style="flex:1"><div class="lyr-name">Chemins AFR</div><div class="lyr-desc">Agricoles · Vérifier accès</div></div>
+      <div class="lyr-sw"></div>
+    </div>
+  </div>
+  <div class="afr-note">⚠️ Chemins AFR : voies agricoles privées. Se renseigner en mairie avant de les emprunter.</div>
+  <div class="sec-lbl">Générer un parcours</div>
+  <div class="gen-card">
+    <div class="gen-hdr"><div class="gen-badge">⚙ Algo</div><div class="gen-title">Parcours sur mesure</div></div>
+    <div><div class="gen-lbl">Mode</div>
+    <div class="gen-modes">
+      <div class="gen-mode sel" data-mode="pied"   onclick="selMode(this)"><span class="em">🥾</span>À pied</div>
+      <div class="gen-mode"     data-mode="velo"   onclick="selMode(this)"><span class="em">🚴</span>Vélo</div>
+      <div class="gen-mode"     data-mode="cheval" onclick="selMode(this)"><span class="em">🐴</span>Cheval</div>
+    </div></div>
+    <div><div class="gen-lbl">Distance souhaitée</div>
+    <select class="gen-sel" id="gen-dist">
+      <option value="3">~3 km · 45 min</option>
+      <option value="5">~5 km · 1h15</option>
+      <option value="8" selected>~8 km · 2h</option>
+      <option value="12">~12 km · 3h</option>
+      <option value="15">~15 km · 3h45</option>
+      <option value="20">~20 km · 5h</option>
+    </select></div>
+    <div><div class="gen-lbl">Point de départ</div>
+    <div class="dep-btns">
+      <button class="dep-btn active" id="dep-parking" onclick="setDepart('parking')">🅿️ Parking</button>
+      <button class="dep-btn"        id="dep-carte"   onclick="setDepart('carte')">🖱️ Carte</button>
+      <button class="dep-btn"        id="dep-gps"     onclick="setDepart('gps')">📍 GPS</button>
+    </div>
+    <div class="dep-info" id="dep-info">🅿️ Parking des randonneurs</div></div>
+    <button class="gen-btn" id="gen-btn" onclick="generateRoute()">⚙ Calculer le parcours</button>
+    <div class="gen-result" id="gen-result">
+      <div class="gen-rtitle" id="gen-rtitle">Parcours calculé</div>
+      <div class="gen-rbody"  id="gen-rbody"></div>
+      <div class="gen-rbtns">
+        <button class="gen-rbtn dl"  onclick="downloadRouteGPX()">⬇️ GPX</button>
+        <button class="gen-rbtn gps" id="gen-gps-btn" onclick="toggleGenGps()">📍 GPS live</button>
+        <button class="gen-rbtn clr" onclick="clearRoute()">✕ Effacer</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+function htmlCircuits() {
+  const d = km => km<=5?{l:'Facile',bg:'#d4edda',c:'#155724'}:km<=12?{l:'Moyen',bg:'#fff3cd',c:'#856404'}:{l:'Sportif',bg:'#f8d7da',c:'#721c24'};
+  return `<div class="notice">ℹ️ Exemples de parcours · C1, C2 et C3 sont les circuits officiels balisés PR.</div>
+  <button class="showall" onclick="showAll()">🗺️ Afficher tous les circuits</button>
+  <div id="circuit-list">` +
+  TRACKS.map(t => {
+    const di = d(t.km);
+    const off = t.name.match(/C[123]\s*—/);
+    return `<div class="card" id="card-${t.id}" onclick="selectTrack(${t.id})">
+      <div class="cbar" style="background:${t.color}"></div>
+      <div class="cinfo"><div class="cn">${t.name}</div><div class="cmeta">${t.km} km · ${t.duree}${off?' · <b>officiel</b>':''}</div></div>
+      <span class="cbadge" style="background:${di.bg};color:${di.c}">${di.l}</span>
+    </div>
+    <div class="detail" id="det-${t.id}">
+      <div class="dtitle">${t.name}</div>
+      <div class="dstats"><span class="ds">📏 ${t.km} km</span><span class="ds">⏱ ${t.duree}</span><span class="ds cbadge" style="background:${di.bg};color:${di.c}">${di.l}</span></div>
+      <div class="dbtns">
+        <button class="dbtn prim" style="background:${t.color}" onclick="zoomTrack(${t.id})">🔍 Zoomer</button>
+        <button class="dbtn sec" onclick="downloadGPX(${t.id})">⬇️ GPX</button>
+        <button class="dbtn sec" onclick="startTrackGps(${t.id})">📍 GPS live</button>
+        <button class="dbtn sec" onclick="showAll()">← Tous</button>
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+function htmlInfos() {
+  return `<div class="ib"><h3>🥾 Conseils</h3><p>Chaussures adaptées. Chemins glissants par temps humide. Emportez de l'eau.</p></div>
+  <div class="ib"><h3>🐾 Animaux</h3><p>Chiens admis en laisse. Respectez la faune locale.</p></div>
+  <div class="ib"><h3>🚌 Accès bus</h3><p>Rémi Ligne 8 — arrêts <strong>Mairie</strong> et <strong>Le Bréau</strong><br>Depuis Orléans : ~30 min</p></div>
+  <div class="ib"><h3>📞 Mairie</h3><p>36 rue du bourg — 45370<br>02 38 45 61 76 · Lun 14h-17h30 · Ven 8h30-11h30</p>
+    <div class="hl">🌐 mezieres-lez-clery.fr · 📻 Radio Mézières Facebook</div></div>`;
+}
+
+// Injection du HTML dans les conteneurs
+function injectTabContent() {
+  document.getElementById('tc-reseau').innerHTML   = htmlReseau();
+  document.getElementById('tc-circuits').innerHTML = htmlCircuits();
+  document.getElementById('tc-infos').innerHTML    = htmlInfos();
+}
+
+// ══════════════════════════════════════════════════════════
+// CARTE LEAFLET
 // ══════════════════════════════════════════════════════════
 const map = L.map('map', {center:[47.818,1.803], zoom:13});
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -397,29 +437,16 @@ const marks = POIS.map((p,i) =>
    .bindPopup(`<div class="pt">${p.ico} ${p.name}</div><div class="pb">${p.desc}</div>`)
 );
 
-// ── Variables globales — déclarées AVANT tout usage ──────────
-const layers = {};
-let activeId   = null;
-let genLayer   = null;
-let genCoords  = null;
-let genMode    = 'pied';
-let departMode = 'parking';
-let departCoords = [47.818096, 1.801526];
-let departMarker = null;
-let pickingDepart = false;
-let netReady   = false;
-let gpsWatchId = null;
-let userMarker = null;
-let userAccuracy = null;
-let sideOpen   = true;
-
 // Légende
 const legCtrl = L.control({position:'bottomright'});
-legCtrl.onAdd = () => { const d=L.DomUtil.create('div','leg'); d.id='legend'; buildLegend(d); return d; };
+legCtrl.onAdd = () => {
+  const d = L.DomUtil.create('div','leg'); d.id='legend';
+  buildLegend(d); return d;
+};
 legCtrl.addTo(map);
 
+// Circuits group
 const circuitGroup = L.layerGroup().addTo(map);
-
 TRACKS.forEach(t => {
   layers[t.id] = L.polyline(t.coords, {color:t.color, weight:3, opacity:.7});
   layers[t.id].on('click', () => selectTrack(t.id));
@@ -427,529 +454,570 @@ TRACKS.forEach(t => {
 });
 
 // ══════════════════════════════════════════════════════════
-// RÉSEAU — chargement GeoJSON depuis /data/
+// RÉSEAU — chargement GeoJSON
 // ══════════════════════════════════════════════════════════
 const netGroups  = {route:L.layerGroup(), terre:L.layerGroup(), afr:L.layerGroup()};
 const netVisible = {route:true, terre:true, afr:true};
 const netStyles  = {
-  route: {color:'#60a5fa', weight:5,   opacity:.85},
-  terre: {color:'#4ade80', weight:4,   opacity:.90, dashArray:'8,5'},
-  afr:   {color:'#fb923c', weight:5,   opacity:.95, dashArray:'14,6'},
+  route: {color:'#60a5fa', weight:5, opacity:.85},
+  terre: {color:'#4ade80', weight:4, opacity:.90, dashArray:'8,5'},
+  afr:   {color:'#fb923c', weight:5, opacity:.95, dashArray:'14,6'},
 };
 
-// Données GeoJSON chargées (pour le routage)
-let geoData = {route:[], terre:[], afr:[]};
-
-async function loadReseau(isRetry = false) {
-  const st = document.getElementById('net-status');
-  const cards = document.getElementById('lyr-cards');
-  if (!st) return;
-
-  st.className = 'net-status';
-  st.innerHTML = '<span class="spin"></span> ' + (isRetry ? 'Nouvelle tentative…' : 'Chargement des voies…');
-
+async function loadReseau(isRetry=false) {
+  const setSt = (cls,html) => {
+    document.querySelectorAll('#net-status').forEach(el=>{el.className='net-st '+cls;el.innerHTML=html;});
+  };
+  const setCards = (show) => {
+    document.querySelectorAll('#lyr-cards').forEach(el=>{el.style.display=show?'flex':'none';});
+  };
+  setSt('',`<span class="spin"></span> ${isRetry?'Nouvelle tentative…':'Chargement des voies…'}`);
   try {
-    const [routesR, terresR, afrR] = await Promise.all([
+    const [rR,tR,aR] = await Promise.all([
       fetch('./data/routes.geojson'),
       fetch('./data/terres.geojson'),
       fetch('./data/afr.geojson')
     ]);
+    if (!rR.ok||!tR.ok||!aR.ok) throw new Error(`HTTP ${[rR.status,tR.status,aR.status].join('/')}`);
+    const [routes,terres,afr] = await Promise.all([rR.json(),tR.json(),aR.json()]);
 
-    if (!routesR.ok || !terresR.ok || !afrR.ok) {
-      const codes = [routesR.status, terresR.status, afrR.status].join('/');
-      throw new Error(`HTTP ${codes}`);
-    }
+    Object.values(netGroups).forEach(g=>g.clearLayers());
+    geoData={route:[],terre:[],afr:[]};
+    let total=0;
 
-    const [routes, terres, afr] = await Promise.all([
-      routesR.json(), terresR.json(), afrR.json()
-    ]);
-
-    // Vider les groupes si retry
-    Object.values(netGroups).forEach(g => g.clearLayers());
-    geoData = {route:[], terre:[], afr:[]};
-
-    let totalSegs = 0;
-
-    const addGeo = (gj, type) => {
-      const feats = gj.features || gj.geometries || [];
-      feats.forEach(f => {
-        const geom = f.geometry || f;
-        if (!geom) return;
-        const name = f.properties?.name || f.properties?.nom || null;
-        const addLine = coords => {
-          if (coords.length < 2) return;
-          const pl = L.polyline(coords, {...netStyles[type]});
-          if (name) pl.bindTooltip(name, {sticky:true, className:'chem-tt'});
+    const addGeo=(gj,type)=>{
+      (gj.features||[]).forEach(f=>{
+        const geom=f.geometry; if(!geom) return;
+        const name=f.properties?.name||f.properties?.nom||null;
+        const addLine=coords=>{
+          if(coords.length<2) return;
+          const pl=L.polyline(coords,{...netStyles[type]});
+          if(name) pl.bindTooltip(name,{sticky:true,className:'chem-tt'});
           netGroups[type].addLayer(pl);
           geoData[type].push(coords);
-          totalSegs++;
+          total++;
         };
-        if (geom.type === 'LineString') {
-          addLine(geom.coordinates.map(c => [c[1],c[0]]));
-        } else if (geom.type === 'MultiLineString') {
-          geom.coordinates.forEach(line => addLine(line.map(pt => [pt[1],pt[0]])));
-        }
+        if(geom.type==='LineString') addLine(geom.coordinates.map(c=>[c[1],c[0]]));
+        else if(geom.type==='MultiLineString') geom.coordinates.forEach(l=>addLine(l.map(c=>[c[1],c[0]])));
       });
     };
+    addGeo(routes,'route'); addGeo(terres,'terre'); addGeo(afr,'afr');
 
-    addGeo(routes, 'route');
-    addGeo(terres, 'terre');
-    addGeo(afr,    'afr');
-
-    // Ajouter à la carte si onglet réseau actif
-    const reseauActive = document.getElementById('tc-reseau')?.classList.contains('on');
-    if (reseauActive) {
-      Object.entries(netGroups).forEach(([k,g]) => { if(netVisible[k]) g.addTo(map); });
+    // Afficher sur la carte si onglet réseau actif
+    if (currentTab==='reseau') {
+      Object.entries(netGroups).forEach(([k,g])=>{if(netVisible[k])g.addTo(map);});
     }
-    netReady = true;
-
-    st.className = 'net-status ok';
-    st.textContent = `✓ ${totalSegs} tronçons chargés`;
-    if (cards) cards.style.display = 'flex';
-
+    netReady=true;
+    setSt('ok',`✓ ${total} tronçons chargés`);
+    setCards(true);
   } catch(e) {
-    st.className = 'net-status err';
-    st.innerHTML = `⚠️ Chargement échoué (${e.message})<br>
-      <button onclick="loadReseau(true)" style="margin-top:6px;background:rgba(234,88,12,.12);border:1px solid rgba(234,88,12,.3);border-radius:5px;color:#b54300;font-size:.68rem;font-weight:700;padding:4px 10px;cursor:pointer;font-family:inherit">↻ Réessayer</button>`;
-    if (cards) cards.style.display = 'flex';
-    netReady = false;
-
-    // Retry automatique une seule fois après 3s
-    if (!isRetry) {
-      setTimeout(() => loadReseau(true), 3000);
-    }
+    setSt('err',`⚠️ Échec chargement (${e.message})<br>
+      <button onclick="loadReseau(true)" style="margin-top:5px;background:rgba(234,88,12,.12);border:1px solid rgba(234,88,12,.3);border-radius:5px;color:#b54300;font-size:.68rem;font-weight:700;padding:3px 9px;cursor:pointer;font-family:inherit">↻ Réessayer</button>`);
+    setCards(true);
+    netReady=false;
+    if(!isRetry) setTimeout(()=>loadReseau(true), 3000);
   }
 }
 
 function toggleLayer(type) {
-  netVisible[type] = !netVisible[type];
-  document.getElementById('lc-'+type)?.classList.toggle('off', !netVisible[type]);
-  document.getElementById('mt-'+type)?.classList.toggle('off', !netVisible[type]);
-  if (netVisible[type]) netGroups[type].addTo(map);
+  netVisible[type]=!netVisible[type];
+  document.querySelectorAll('#lc-'+type).forEach(el=>el.classList.toggle('off',!netVisible[type]));
+  document.getElementById('mt-'+type)?.classList.toggle('off',!netVisible[type]);
+  if(netVisible[type]) netGroups[type].addTo(map);
   else map.removeLayer(netGroups[type]);
 }
 
 // ══════════════════════════════════════════════════════════
-// GÉNÉRATEUR DE PARCOURS ALGORITHMIQUE
+// ROUTAGE SUR GRAPHE RÉEL
+// Distance entre deux points [lat,lng] en mètres (Haversine)
 // ══════════════════════════════════════════════════════════
-function selMode(el) {
-  document.querySelectorAll('.gen-mode').forEach(e => e.classList.remove('sel'));
-  el.classList.add('sel');
-  genMode = el.dataset.mode;
-}
-
-function setDepart(mode) {
-  departMode = mode;
-  ['parking','carte','gps'].forEach(m => {
-    document.getElementById('dep-'+m)?.classList.toggle('active', m===mode);
-  });
-  const info = document.getElementById('dep-info');
-  const hint = document.getElementById('dep-hint');
-
-  if (mode === 'parking') {
-    departCoords = [47.818096, 1.801526];
-    if (info) { info.textContent = '🅿️ Parking des randonneurs'; info.classList.add('show'); }
-    if (hint) hint.style.display = 'none';
-    pickingDepart = false;
-    map.getContainer().style.cursor = '';
-    if (departMarker) { map.removeLayer(departMarker); departMarker=null; }
-
-  } else if (mode === 'carte') {
-    if (info) { info.textContent = '🖱️ Cliquez sur la carte…'; info.classList.add('show'); }
-    if (hint) hint.style.display = 'block';
-    pickingDepart = true;
-    map.getContainer().style.cursor = 'crosshair';
-
-  } else if (mode === 'gps') {
-    if (info) { info.textContent = '📡 Localisation…'; info.classList.add('show'); }
-    pickingDepart = false;
-    map.getContainer().style.cursor = '';
-    if (!navigator.geolocation) { if(info) info.textContent='⚠️ GPS indisponible'; return; }
-    navigator.geolocation.getCurrentPosition(pos => {
-      departCoords = [pos.coords.latitude, pos.coords.longitude];
-      if (info) info.textContent = `📍 ${departCoords[0].toFixed(5)}, ${departCoords[1].toFixed(5)}`;
-      if (departMarker) map.removeLayer(departMarker);
-      departMarker = L.circleMarker(departCoords, {radius:9,color:'#4ade80',weight:3,fillColor:'#4ade80',fillOpacity:.7}).addTo(map);
-      map.setView(departCoords, 14);
-    }, () => { if(info) info.textContent='⚠️ Position GPS indisponible'; }, {enableHighAccuracy:true,timeout:10000});
-  }
-}
-
-map.on('click', e => {
-  if (!pickingDepart) return;
-  departCoords = [e.latlng.lat, e.latlng.lng];
-  if (departMarker) map.removeLayer(departMarker);
-  departMarker = L.circleMarker(departCoords, {radius:9,color:'#4ade80',weight:3,fillColor:'#4ade80',fillOpacity:.7}).addTo(map);
-  const info = document.getElementById('dep-info');
-  if (info) info.textContent = `📍 ${departCoords[0].toFixed(5)}, ${departCoords[1].toFixed(5)}`;
-  const hint = document.getElementById('dep-hint');
-  if (hint) hint.style.display = 'none';
-  map.getContainer().style.cursor = '';
-  pickingDepart = false;
-});
-
-// Distance entre deux points [lat,lng] en mètres
-function dist(a, b) {
-  const R=6371000, dLat=(b[0]-a[0])*Math.PI/180, dLng=(b[1]-a[1])*Math.PI/180;
+function dist(a,b){
+  const R=6371000,dLat=(b[0]-a[0])*Math.PI/180,dLng=(b[1]-a[1])*Math.PI/180;
   const x=Math.sin(dLat/2)**2+Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dLng/2)**2;
   return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
 
-// Trouver le segment le plus proche d'un point
-function nearestPointOnSegments(segs, pt) {
-  let best=null, bestD=Infinity;
-  segs.forEach(seg => {
-    seg.forEach(p => {
-      const d=dist(pt,p);
-      if (d < bestD) { bestD=d; best=p; }
-    });
+// Snap : trouver le point le plus proche sur les segments
+function snapToNet(segs, pt) {
+  let best=null,bestD=Infinity,bestSeg=-1,bestIdx=-1;
+  segs.forEach((seg,si)=>seg.forEach((p,pi)=>{
+    const d=dist(pt,p);
+    if(d<bestD){bestD=d;best=p;bestSeg=si;bestIdx=pi;}
+  }));
+  return {point:best,segIdx:bestSeg,ptIdx:bestIdx,d:bestD};
+}
+
+// Construire une boucle en suivant les segments GeoJSON réels
+// On parcourt les segments en cherchant des connexions (extrémités proches)
+function buildGraphLoop(targetM, mode) {
+  // Sélection des couches selon mode
+  let segs=[];
+  if(mode==='cheval') segs=[...geoData.terre];
+  else if(mode==='velo') segs=[...geoData.route,...geoData.terre];
+  else segs=[...geoData.terre,...geoData.route]; // pied : chemins en priorité + routes ok
+
+  if(!segs.length) return null;
+
+  // Snap du point de départ
+  const snap=snapToNet(segs,departCoords);
+  if(!snap.point) return null;
+
+  // Construire un graphe simplifié : noeuds = extrémités de chaque segment
+  // On considère que deux extrémités sont connectées si distance < 30m
+  const CONNECT_DIST = 30; // mètres
+
+  // Index des extrémités : pour chaque segment, début et fin
+  const nodes=[]; // {pt, segIdx, end:0|1}
+  segs.forEach((seg,si)=>{
+    nodes.push({pt:seg[0],         segIdx:si,end:0});
+    nodes.push({pt:seg[seg.length-1],segIdx:si,end:1});
   });
-  return {point:best, distance:bestD};
+
+  // Trouver les voisins d'un nœud (segments connectés)
+  function neighbors(segIdx, entryEnd) {
+    const entryPt = entryEnd===0 ? segs[segIdx][0] : segs[segIdx][segs[segIdx].length-1];
+    const exitPt  = entryEnd===0 ? segs[segIdx][segs[segIdx].length-1] : segs[segIdx][0];
+    // Chercher les segments dont une extrémité est proche de exitPt
+    const result=[];
+    nodes.forEach(n=>{
+      if(n.segIdx===segIdx) return; // même segment
+      if(dist(n.pt,exitPt)<CONNECT_DIST) result.push({segIdx:n.segIdx, entryEnd:n.end});
+    });
+    return result;
+  }
+
+  // Calculer la longueur d'un segment
+  function segLen(si) {
+    const seg=segs[si]; let l=0;
+    for(let i=1;i<seg.length;i++) l+=dist(seg[i-1],seg[i]);
+    return l;
+  }
+
+  // Longueurs précalculées
+  const segLens=segs.map((_,i)=>segLen(i));
+
+  // Parcours : on cherche une boucle d'environ targetM mètres
+  // Algorithme : DFS avec backtracking léger, limite de temps
+  const startSnap=snapToNet(segs,departCoords);
+  const startSeg=startSnap.segIdx;
+
+  // Trouver le bon end (le plus proche du départ)
+  const d0=dist(segs[startSeg][0],departCoords);
+  const d1=dist(segs[startSeg][segs[startSeg].length-1],departCoords);
+  const startEnd=d0<d1?0:1;
+
+  // Parcours greedy avec randomisation
+  const visited=new Set();
+  const path=[]; // {segIdx, forward:bool}
+  let totalLen=0;
+  let cur={segIdx:startSeg, entryEnd:startEnd};
+
+  const MAX_ITERS=200;
+  let iters=0;
+
+  // Phase aller : s'éloigner jusqu'à ~55% de la cible
+  while(totalLen < targetM*0.55 && iters<MAX_ITERS) {
+    iters++;
+    const {segIdx,entryEnd}=cur;
+    if(visited.has(segIdx)) {
+      // Chercher un segment non visité proche
+      const exitPt = entryEnd===0 ? segs[segIdx][segs[segIdx].length-1] : segs[segIdx][0];
+      const unvisited=nodes.filter(n=>!visited.has(n.segIdx)&&dist(n.pt,exitPt)<100);
+      if(!unvisited.length) break;
+      cur={segIdx:unvisited[0].segIdx,entryEnd:unvisited[0].end};
+      continue;
+    }
+    const forward = entryEnd===0;
+    path.push({segIdx,forward});
+    visited.add(segIdx);
+    totalLen+=segLens[segIdx];
+
+    const nexts=neighbors(segIdx,entryEnd===0?1:0)
+      .filter(n=>!visited.has(n.segIdx));
+    if(!nexts.length) break;
+    // Choisir le voisin qui s'éloigne le plus du départ
+    const exitPt=entryEnd===0?segs[segIdx][segs[segIdx].length-1]:segs[segIdx][0];
+    const dFromStart=dist(exitPt,departCoords);
+    nexts.sort((a,b)=>{
+      const pa=a.entryEnd===0?segs[a.segIdx][0]:segs[a.segIdx][segs[a.segIdx].length-1];
+      const pb=b.entryEnd===0?segs[b.segIdx][0]:segs[b.segIdx][segs[b.segIdx].length-1];
+      return dist(pb,departCoords)-dist(pa,departCoords);
+    });
+    // Un peu de randomisation
+    const pool=nexts.slice(0,Math.max(1,Math.min(3,nexts.length)));
+    cur=pool[Math.floor(Math.random()*pool.length)];
+  }
+
+  // Phase retour : revenir vers le départ
+  iters=0;
+  while(iters<MAX_ITERS) {
+    iters++;
+    const {segIdx,entryEnd}=cur;
+    const exitPt=entryEnd===0?segs[segIdx][segs[segIdx].length-1]:segs[segIdx][0];
+    const dFromStart=dist(exitPt,departCoords);
+    if(dFromStart<80) break; // on est arrivé
+
+    if(!visited.has(segIdx)){
+      path.push({segIdx,forward:entryEnd===0});
+      visited.add(segIdx);
+      totalLen+=segLens[segIdx];
+    }
+
+    const nexts=neighbors(segIdx,entryEnd===0?1:0);
+    if(!nexts.length) break;
+    // Choisir le voisin le plus proche du départ
+    nexts.sort((a,b)=>{
+      const pa=a.entryEnd===0?segs[a.segIdx][0]:segs[a.segIdx][segs[a.segIdx].length-1];
+      const pb=b.entryEnd===0?segs[b.segIdx][0]:segs[b.segIdx][segs[b.segIdx].length-1];
+      return dist(pa,departCoords)-dist(pb,departCoords);
+    });
+    cur=nexts[0];
+  }
+
+  // Construire le tracé réel depuis les segments
+  if(!path.length) return null;
+
+  const coords=[departCoords];
+  path.forEach(({segIdx,forward})=>{
+    const seg=segs[segIdx];
+    const pts=forward?seg:[...seg].reverse();
+    pts.forEach(p=>coords.push(p));
+  });
+  coords.push(departCoords);
+
+  // Recalculer la distance réelle
+  let realDist=0;
+  for(let i=1;i<coords.length;i++) realDist+=dist(coords[i-1],coords[i]);
+
+  return {coords,distM:realDist};
 }
 
-// Moteur de routage : construit une boucle approximative sur les voies
-// Principe : "random walk" contraint sur les segments, avec retour au départ
-function buildLoop(targetM, mode) {
-  // Choisir les couches autorisées selon le mode
-  let segs = [];
-  if (mode === 'velo') {
-    // Vélo : routes + chemins larges
-    segs = [...geoData.route, ...geoData.terre];
-  } else if (mode === 'cheval') {
-    // Cheval : uniquement chemins de terre
-    segs = [...geoData.terre];
-  } else {
-    // Pied : tout + petites portions de route autorisées pour rejoindre un chemin
-    segs = [...geoData.terre, ...geoData.route];
-  }
-
-  if (segs.length === 0) return null;
-
-  // Collecter tous les points
-  const allPts = segs.flat();
-  if (allPts.length < 4) return null;
-
-  // Point de départ le plus proche sur le réseau
-  const startSnap = nearestPointOnSegments(segs, departCoords);
-  if (!startSnap.point) return null;
-
-  // Construire une boucle par parcours pseudo-aléatoire orienté
-  // On choisit des segments successifs en évitant de revenir en arrière trop vite
-  const loop = [departCoords, startSnap.point];
-  let totalDist = dist(departCoords, startSnap.point);
-  let current = startSnap.point;
-  let attempts = 0;
-
-  // Phase 1 : s'éloigner jusqu'à ~60% de la distance cible
-  const phase1Target = targetM * 0.55;
-  while (totalDist < phase1Target && attempts < 500) {
-    attempts++;
-    // Trouver les segments qui passent près du point courant
-    const nearby = segs.filter(seg =>
-      seg.some(p => dist(p, current) < 200)
-    );
-    if (nearby.length === 0) break;
-
-    // Choisir un segment aléatoire parmi les proches
-    const seg = nearby[Math.floor(Math.random() * nearby.length)];
-    // Choisir un point du segment qui s'éloigne du départ
-    const candidates = seg.filter(p => {
-      const dFromStart = dist(p, departCoords);
-      const dFromCurrent = dist(p, current);
-      return dFromCurrent > 50 && dFromStart > dist(current, departCoords) * 0.5;
-    });
-    if (candidates.length === 0) continue;
-    const next = candidates[Math.floor(Math.random() * candidates.length)];
-    const step = dist(current, next);
-    if (step < 20) continue;
-    loop.push(next);
-    totalDist += step;
-    current = next;
-  }
-
-  // Phase 2 : retour vers le départ
-  const returnTarget = targetM - totalDist;
-  let returnDist = dist(current, departCoords);
-  attempts = 0;
-  while (returnDist > 150 && attempts < 300) {
-    attempts++;
-    const nearby = segs.filter(seg => seg.some(p => dist(p, current) < 300));
-    if (nearby.length === 0) break;
-    const seg = nearby[Math.floor(Math.random() * nearby.length)];
-    const candidates = seg.filter(p => {
-      const d = dist(p, departCoords);
-      const dc = dist(p, current);
-      return dc > 30 && d < returnDist * 1.1;
-    });
-    if (candidates.length === 0) break;
-    const next = candidates.sort((a,b) => dist(a,departCoords)-dist(b,departCoords))[0];
-    const step = dist(current, next);
-    if (step < 20) break;
-    loop.push(next);
-    totalDist += step;
-    returnDist = dist(next, departCoords);
-    current = next;
-  }
-
-  loop.push(departCoords);
-  totalDist += returnDist;
-
-  return { coords: loop, distM: totalDist };
+function selMode(el) {
+  document.querySelectorAll('.gen-mode').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  genMode=el.dataset.mode;
 }
+
+function setDepart(mode) {
+  departMode=mode;
+  ['parking','carte','gps'].forEach(m=>{
+    document.querySelectorAll('#dep-'+m).forEach(el=>el.classList.toggle('active',m===mode));
+  });
+  const info=()=>document.querySelectorAll('#dep-info');
+  const hint=document.getElementById('dep-hint');
+
+  if(mode==='parking'){
+    departCoords=[47.818096,1.801526];
+    info().forEach(el=>el.textContent='🅿️ Parking des randonneurs');
+    if(hint) hint.style.display='none';
+    pickingDepart=false;
+    map.getContainer().style.cursor='';
+    if(departMarker){map.removeLayer(departMarker);departMarker=null;}
+  } else if(mode==='carte'){
+    info().forEach(el=>el.textContent='🖱️ Cliquez sur la carte…');
+    if(hint) hint.style.display='block';
+    pickingDepart=true;
+    map.getContainer().style.cursor='crosshair';
+  } else if(mode==='gps'){
+    info().forEach(el=>el.textContent='📡 Localisation…');
+    pickingDepart=false;
+    map.getContainer().style.cursor='';
+    if(!navigator.geolocation){info().forEach(el=>el.textContent='⚠️ GPS indisponible');return;}
+    navigator.geolocation.getCurrentPosition(pos=>{
+      departCoords=[pos.coords.latitude,pos.coords.longitude];
+      info().forEach(el=>el.textContent=`📍 ${departCoords[0].toFixed(5)}, ${departCoords[1].toFixed(5)}`);
+      if(departMarker) map.removeLayer(departMarker);
+      departMarker=L.circleMarker(departCoords,{radius:9,color:'#4ade80',weight:3,fillColor:'#4ade80',fillOpacity:.7}).addTo(map);
+      map.setView(departCoords,14);
+    },()=>{info().forEach(el=>el.textContent='⚠️ GPS indisponible');},{enableHighAccuracy:true,timeout:10000});
+  }
+}
+
+map.on('click',e=>{
+  if(!pickingDepart) return;
+  departCoords=[e.latlng.lat,e.latlng.lng];
+  if(departMarker) map.removeLayer(departMarker);
+  departMarker=L.circleMarker(departCoords,{radius:9,color:'#4ade80',weight:3,fillColor:'#4ade80',fillOpacity:.7}).addTo(map);
+  document.querySelectorAll('#dep-info').forEach(el=>el.textContent=`📍 ${departCoords[0].toFixed(5)}, ${departCoords[1].toFixed(5)}`);
+  const hint=document.getElementById('dep-hint');
+  if(hint) hint.style.display='none';
+  map.getContainer().style.cursor='';
+  pickingDepart=false;
+});
 
 function generateRoute() {
-  const btn = document.getElementById('gen-btn');
-  const res = document.getElementById('gen-result');
-  const rtitle = document.getElementById('gen-rtitle');
-  const rbody  = document.getElementById('gen-rbody');
+  clearRoute(); // Effacer l'ancien parcours
 
-  // Vérifier réseau disponible
-  if (!netReady || (geoData.route.length + geoData.terre.length) === 0) {
+  const btn=document.getElementById('gen-btn');
+  const res=document.getElementById('gen-result');
+  const rtitle=document.getElementById('gen-rtitle');
+  const rbody=document.getElementById('gen-rbody');
+
+  if(!netReady||(geoData.route.length+geoData.terre.length)===0){
     res.classList.add('show');
-    rtitle.textContent = 'Réseau indisponible';
-    rbody.innerHTML = 'Les fichiers GeoJSON ne sont pas encore chargés. Vérifiez que <code>data/routes.geojson</code> et <code>data/terres.geojson</code> existent dans votre repo.';
+    rtitle.textContent='Réseau indisponible';
+    rbody.innerHTML='Les fichiers GeoJSON ne sont pas chargés.<br>Vérifiez <code>data/routes.geojson</code> et <code>data/terres.geojson</code>';
     return;
   }
 
-  const targetKm = parseFloat(document.getElementById('gen-dist').value);
-  const targetM  = targetKm * 1000;
+  const targetKm=parseFloat(document.getElementById('gen-dist').value);
+  const targetM=targetKm*1000;
 
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Calcul…';
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span> Calcul…';
   res.classList.add('show');
-  rtitle.textContent = 'Calcul en cours…';
-  rbody.innerHTML = '<span class="ldots">Recherche d\'itinéraire</span>';
+  rtitle.textContent='Calcul en cours…';
+  rbody.innerHTML='<span class="ldots">Recherche sur le réseau</span>';
 
-  // Lancer le calcul en asynchrone pour ne pas bloquer l'UI
-  setTimeout(() => {
-    try {
-      // Tenter plusieurs fois et garder le meilleur résultat
-      let best = null;
-      for (let i = 0; i < 8; i++) {
-        const result = buildLoop(targetM, genMode);
-        if (!result) continue;
-        const diff = Math.abs(result.distM - targetM);
-        if (!best || diff < Math.abs(best.distM - targetM)) best = result;
+  setTimeout(()=>{
+    try{
+      // Essayer plusieurs fois, garder le mieux
+      let best=null;
+      for(let i=0;i<6;i++){
+        const r=buildGraphLoop(targetM,genMode);
+        if(!r) continue;
+        if(!best||Math.abs(r.distM-targetM)<Math.abs(best.distM-targetM)) best=r;
       }
 
-      if (!best || best.coords.length < 4) {
-        rtitle.textContent = 'Impossible de calculer';
-        rbody.innerHTML = 'Pas assez de voies disponibles pour cette distance. Essayez une distance plus courte ou activez plus de couches.';
+      if(!best||best.coords.length<4){
+        rtitle.textContent='Impossible de calculer';
+        rbody.innerHTML='Pas assez de connexions dans le réseau pour cette distance.';
         return;
       }
 
-      const realKm = (best.distM / 1000).toFixed(1);
-      const modeSpeedKmh = {pied:4, velo:15, cheval:8};
-      const speed = modeSpeedKmh[genMode] || 4;
-      const dureeMin = Math.round((best.distM/1000) / speed * 60);
-      const h = Math.floor(dureeMin/60), m = dureeMin%60;
-      const dureeStr = h>0 ? `${h}h${m.toString().padStart(2,'0')}` : `${m} min`;
-      const modeNames = {pied:'À pied', velo:'À vélo', cheval:'À cheval'};
+      const realKm=(best.distM/1000).toFixed(1);
+      const speeds={pied:4,velo:15,cheval:8};
+      const dureeMin=Math.round((best.distM/1000)/(speeds[genMode]||4)*60);
+      const h=Math.floor(dureeMin/60),m=dureeMin%60;
+      const dureeStr=h>0?`${h}h${m.toString().padStart(2,'0')}`:`${m} min`;
 
-      if (genLayer) map.removeLayer(genLayer);
-      genCoords = best.coords;
-      genLayer = L.polyline(genCoords, {color:'#4ade80', weight:5, opacity:.9, dashArray:'12,4'}).addTo(map);
-      map.fitBounds(genLayer.getBounds(), {padding:[40,40]});
+      genCoords=best.coords;
+      // Couleur foncée et épaisse — bien visible sur le fond de carte
+      genLayer=L.polyline(genCoords,{color:'#4c1d95',weight:6,opacity:.95}).addTo(map);
+      map.fitBounds(genLayer.getBounds(),{padding:[40,40]});
 
-      rtitle.textContent = `Boucle de ${realKm} km`;
-      rbody.innerHTML = `
-        <strong>${modeNames[genMode]}</strong> · ⏱ ${dureeStr}<br>
-        Parcours calculé sur le réseau de voies de la commune.
-        ${genMode==='pied'?'<br><small style="color:var(--moss)">À pied : quelques tronçons de route peuvent être empruntés pour rejoindre les chemins.</small>':''}
-      `;
-      document.getElementById('gen-rdl').style.display = '';
+      // Masquer le réseau une fois le parcours affiché
+      Object.values(netGroups).forEach(g=>map.removeLayer(g));
+      Object.values(netGroups).forEach((g,i)=>{
+        const keys=['route','terre','afr'];
+        document.getElementById('mt-'+keys[i])?.classList.add('off');
+      });
 
-    } catch(e) {
-      rtitle.textContent = 'Erreur de calcul';
-      rbody.innerHTML = e.message;
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '⚙ Calculer le parcours';
+      rtitle.textContent=`Boucle de ${realKm} km`;
+      rbody.innerHTML=`<strong>${{pied:'À pied',velo:'À vélo',cheval:'À cheval'}[genMode]}</strong> · ⏱ ${dureeStr}<br>
+        Tracé sur les voies réelles de la commune.${genMode==='pied'?'<br><small style="color:var(--moss)">Quelques tronçons de route peuvent être utilisés pour rejoindre les chemins.</small>':''}`;
+      document.getElementById('gen-gps-btn').style.display='';
+
+    }catch(e){
+      rtitle.textContent='Erreur';
+      rbody.innerHTML=e.message;
+    }finally{
+      btn.disabled=false;
+      btn.innerHTML='⚙ Calculer le parcours';
     }
-  }, 50);
+  },50);
 }
 
 function clearRoute() {
-  if (genLayer) { map.removeLayer(genLayer); genLayer=null; genCoords=null; }
-  document.getElementById('gen-result').classList.remove('show');
+  if(genLayer){map.removeLayer(genLayer);genLayer=null;genCoords=null;}
+  // Réafficher le réseau si on est sur l'onglet réseau
+  if(currentTab==='reseau'){
+    Object.entries(netGroups).forEach(([k,g])=>{
+      if(netVisible[k]) g.addTo(map);
+      document.getElementById('mt-'+k)?.classList.toggle('off',!netVisible[k]);
+    });
+  }
+  // Stopper GPS parcours si actif
+  stopGenGps();
+  document.getElementById('gen-result')?.classList.remove('show');
 }
 
-function downloadRouteGPX() {
-  if (!genCoords || genCoords.length < 2) return;
-  const pts = genCoords.map(c => `<trkpt lat="${c[0]}" lon="${c[1]}"></trkpt>`).join('\n');
-  const gpx = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="MAT-Mezieres">
-  <trk><n>Parcours généré</n><trkseg>${pts}</trkseg></trk>
-</gpx>`;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([gpx], {type:'application/gpx+xml'}));
-  a.download = 'parcours-mezieres.gpx';
-  a.click();
+// GPS live sur le parcours généré
+function toggleGenGps() {
+  if(genGpsWatch){stopGenGps();return;}
+  if(!navigator.geolocation){alert('GPS indisponible');return;}
+  const btn=document.getElementById('gen-gps-btn');
+  if(btn) btn.textContent='⏹ Arrêter GPS';
+  genGpsWatch=navigator.geolocation.watchPosition(pos=>{
+    const ll=[pos.coords.latitude,pos.coords.longitude];
+    if(!genUserMk) genUserMk=L.circleMarker(ll,{radius:9,color:'#4c1d95',weight:3,fillColor:'#a78bfa',fillOpacity:.9}).addTo(map);
+    else genUserMk.setLatLng(ll);
+  },()=>{},{enableHighAccuracy:true,maximumAge:3000,timeout:12000});
+}
+function stopGenGps(){
+  if(genGpsWatch){navigator.geolocation.clearWatch(genGpsWatch);genGpsWatch=null;}
+  if(genUserMk){map.removeLayer(genUserMk);genUserMk=null;}
+  const btn=document.getElementById('gen-gps-btn');
+  if(btn) btn.textContent='📍 GPS live';
+}
+
+function downloadRouteGPX(){
+  if(!genCoords||genCoords.length<2) return;
+  const pts=genCoords.map(c=>`<trkpt lat="${c[0]}" lon="${c[1]}"></trkpt>`).join('\n');
+  const gpx=`<?xml version="1.0"?><gpx version="1.1" creator="MAT-Mezieres"><trk><n>Parcours généré</n><trkseg>${pts}</trkseg></trk></gpx>`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'}));
+  a.download='parcours-mezieres.gpx'; a.click();
 }
 
 // ══════════════════════════════════════════════════════════
 // CIRCUITS
 // ══════════════════════════════════════════════════════════
-function diff(km) {
-  if (km<=5)  return {l:'Facile',bg:'#d4edda',c:'#155724'};
-  if (km<=12) return {l:'Moyen', bg:'#fff3cd',c:'#856404'};
-  return           {l:'Sportif',bg:'#f8d7da',c:'#721c24'};
-}
-
-function buildList() {
-  const html = TRACKS.map(t => {
-    const d = diff(t.km);
-    const isOfficial = t.name.match(/C[123]\s*—/);
-    return `
-    <div class="card" id="card-${t.id}" onclick="selectTrack(${t.id})">
-      <div class="cbar" style="background:${t.color}"></div>
-      <div class="cinfo">
-        <div class="cn">${t.name}</div>
-        <div class="cmeta">${t.km} km · ${t.duree}${isOfficial?' · <strong>Circuit officiel</strong>':''}</div>
-      </div>
-      <span class="cbadge" style="background:${d.bg};color:${d.c}">${d.l}</span>
-    </div>
-    <div class="detail" id="det-${t.id}">
-      <div class="dtitle">${t.name}</div>
-      <div class="dstats">
-        <span class="ds">📏 ${t.km} km</span>
-        <span class="ds">⏱ ${t.duree}</span>
-        <span class="ds cbadge" style="background:${d.bg};color:${d.c}">${d.l}</span>
-      </div>
-      <div class="ddesc">Circuit au départ du parking des randonneurs.${isOfficial?' Circuit officiel balisé PR.':' Exemple de parcours.'}</div>
-      <div class="dbtns">
-        <button class="dbtn prim" style="background:${t.color}" onclick="zoomTrack(${t.id})">🔍 Zoomer</button>
-        <button class="dbtn sec" onclick="downloadGPX(${t.id})">⬇️ GPX</button>
-        <button class="dbtn sec" onclick="startTrackGps(${t.id})">📍 GPS live</button>
-        <button class="dbtn sec" onclick="showAll()">← Tous</button>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('circuit-list').innerHTML = html;
-}
-
-function selectTrack(id) {
-  if (activeId===id) { clearSelection(); return; }
-  activeId = id;
-  TRACKS.forEach(t => layers[t.id].setStyle(t.id===id ? {weight:5,opacity:1} : {weight:2,opacity:.12}));
-  document.querySelectorAll('.card').forEach(c => c.classList.remove('on'));
-  document.querySelectorAll('.detail').forEach(d => d.classList.remove('on'));
+function selectTrack(id){
+  if(activeId===id){clearSelection();return;}
+  activeId=id;
+  TRACKS.forEach(t=>layers[t.id].setStyle(t.id===id?{weight:5,opacity:1}:{weight:2,opacity:.12}));
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('on'));
+  document.querySelectorAll('.detail').forEach(d=>d.classList.remove('on'));
   document.getElementById(`card-${id}`)?.classList.add('on');
   document.getElementById(`det-${id}`)?.classList.add('on');
   buildLegend();
   zoomTrack(id);
 }
-
-function zoomTrack(id) { map.fitBounds(layers[id].getBounds(), {padding:[30,30]}); }
-
-function clearSelection() {
-  activeId = null;
-  TRACKS.forEach(t => layers[t.id].setStyle({weight:3, opacity:.7}));
-  document.querySelectorAll('.card').forEach(c => c.classList.remove('on'));
-  document.querySelectorAll('.detail').forEach(d => d.classList.remove('on'));
+function zoomTrack(id){map.fitBounds(layers[id].getBounds(),{padding:[30,30]});}
+function clearSelection(){
+  activeId=null;
+  TRACKS.forEach(t=>layers[t.id].setStyle({weight:3,opacity:.7}));
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('on'));
+  document.querySelectorAll('.detail').forEach(d=>d.classList.remove('on'));
   buildLegend();
 }
-
-function showAll() {
+function showAll(){
   clearSelection();
-  map.fitBounds(L.latLngBounds(TRACKS.flatMap(t=>t.coords)), {padding:[30,30]});
+  map.fitBounds(L.latLngBounds(TRACKS.flatMap(t=>t.coords)),{padding:[30,30]});
 }
-
-function buildLegend(el) {
-  el = el || document.getElementById('legend');
-  if (!el) return;
-  el.innerHTML = '<h4>Circuits</h4>' + TRACKS.map(t => `
+function buildLegend(el){
+  el=el||document.getElementById('legend'); if(!el) return;
+  el.innerHTML='<h4>Circuits</h4>'+TRACKS.map(t=>`
     <div class="li ${activeId===t.id?'on':''}" onclick="selectTrack(${t.id})">
       <div class="ll" style="background:${t.color}"></div>${t.km}km
     </div>`).join('');
 }
-
-function downloadGPX(id) {
-  const t = TRACKS.find(x=>x.id===id); if(!t) return;
-  const pts = t.coords.map(c=>`<trkpt lat="${c[0]}" lon="${c[1]}"></trkpt>`).join('\n');
-  const gpx = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="MAT-Mezieres"><trk><n>${t.name}</n><trkseg>${pts}</trkseg></trk></gpx>`;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'}));
-  a.download = (t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-") || `circuit-${id}`) + '.gpx';
+function downloadGPX(id){
+  const t=TRACKS.find(x=>x.id===id);if(!t)return;
+  const pts=t.coords.map(c=>`<trkpt lat="${c[0]}" lon="${c[1]}"></trkpt>`).join('\n');
+  const gpx=`<?xml version="1.0"?><gpx version="1.1" creator="MAT-Mezieres"><trk><n>${t.name}</n><trkseg>${pts}</trkseg></trk></gpx>`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'}));
+  a.download=(t.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-'))+'.gpx';
   a.click();
 }
 
 // ══════════════════════════════════════════════════════════
-// GPS
+// GPS GLOBAL (localisation sur la carte)
 // ══════════════════════════════════════════════════════════
-function toggleGps() {
-  const btn = document.getElementById('gpsfab');
+function toggleGps(){
+  const btn=document.getElementById('gpsfab');
   btn.classList.remove('blink');
-  if (gpsWatchId) {
-    navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId=null;
-    if (userMarker)   { map.removeLayer(userMarker);   userMarker=null; }
-    if (userAccuracy) { map.removeLayer(userAccuracy); userAccuracy=null; }
+  if(gpsWatchId){
+    navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null;
+    if(userMarker){map.removeLayer(userMarker);userMarker=null;}
+    if(userAccuracy){map.removeLayer(userAccuracy);userAccuracy=null;}
     btn.classList.remove('on');
-    btn.innerHTML = '<span>📍</span><span>Localisez-moi</span>';
+    btn.innerHTML='<span>📍</span><span>Localisez-moi</span>';
     return;
   }
-  if (!navigator.geolocation) { alert('Géolocalisation non supportée'); return; }
-  btn.innerHTML = '<span>📡</span><span>Localisation…</span>';
-  gpsWatchId = navigator.geolocation.watchPosition(pos => {
-    const ll=[pos.coords.latitude,pos.coords.longitude], acc=pos.coords.accuracy||0;
-    if (!userMarker)   userMarker   = L.circleMarker(ll,{radius:8,color:'#1e3a1e',weight:3,fillColor:'#c9a84c',fillOpacity:1}).addTo(map);
+  if(!navigator.geolocation){alert('Géolocalisation non supportée');return;}
+  btn.innerHTML='<span>📡</span><span>Localisation…</span>';
+  gpsWatchId=navigator.geolocation.watchPosition(pos=>{
+    const ll=[pos.coords.latitude,pos.coords.longitude],acc=pos.coords.accuracy||0;
+    if(!userMarker) userMarker=L.circleMarker(ll,{radius:8,color:'#1e3a1e',weight:3,fillColor:'#c9a84c',fillOpacity:1}).addTo(map);
     else userMarker.setLatLng(ll);
-    if (!userAccuracy) userAccuracy = L.circle(ll,{radius:acc,color:'#6b9e5e',weight:1,fillColor:'#a8c89a',fillOpacity:.15}).addTo(map);
-    else { userAccuracy.setLatLng(ll); userAccuracy.setRadius(acc); }
+    if(!userAccuracy) userAccuracy=L.circle(ll,{radius:acc,color:'#6b9e5e',weight:1,fillColor:'#a8c89a',fillOpacity:.15}).addTo(map);
+    else{userAccuracy.setLatLng(ll);userAccuracy.setRadius(acc);}
     btn.classList.add('on');
-    btn.innerHTML = '<span>📍</span><span>Localisé ✓</span>';
-  }, () => {
+    btn.innerHTML='<span>📍</span><span>Localisé ✓</span>';
+  },()=>{
     btn.classList.remove('on');
-    btn.innerHTML = '<span>📍</span><span>Localisez-moi</span>';
-  }, {enableHighAccuracy:true,maximumAge:5000,timeout:12000});
+    btn.innerHTML='<span>📍</span><span>Localisez-moi</span>';
+  },{enableHighAccuracy:true,maximumAge:5000,timeout:12000});
 }
-
-function startTrackGps(id) { selectTrack(id); if(!gpsWatchId) toggleGps(); }
+function startTrackGps(id){selectTrack(id);if(!gpsWatchId)toggleGps();}
 
 // ══════════════════════════════════════════════════════════
-// TABS
+// TABS — synchronisés desktop + mobile
+// doTab(n, btn, ctx) : ctx='desk'|'mob'
 // ══════════════════════════════════════════════════════════
-function doTab(n, btn) {
-  document.querySelectorAll('.tc').forEach(t => t.classList.remove('on'));
-  document.querySelectorAll('.side .tab').forEach(b => b.classList.remove('on'));
-  document.getElementById('tc-'+n)?.classList.add('on');
+function doTab(n, btn, ctx) {
+  if(currentTab!==n) clearRoute(); // Effacer le parcours au changement d'onglet
+  currentTab=n;
+
+  // Sync onglets desktop
+  document.querySelectorAll('#desk-tabs .tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('#mob-tabs .tab').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
+  // Activer l'onglet correspondant dans l'autre contexte
+  const allTabs=[...document.querySelectorAll('#desk-tabs .tab'),...document.querySelectorAll('#mob-tabs .tab')];
+  const labels={reseau:'🗺️ Réseau',circuits:'🥾 Circuits',infos:'ℹ️ Infos'};
+  allTabs.forEach(b=>{if(b.textContent.trim()===labels[n]) b.classList.add('on');});
 
-  const tog = document.getElementById('map-toggles');
-  if (n === 'reseau') {
-    // Masquer circuits, afficher réseau
+  // Afficher le bon contenu
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
+  document.getElementById('tc-'+n)?.classList.add('on');
+
+  // Contenu mobile
+  const scroll=document.getElementById('mob-scroll');
+  if(scroll){
+    if(n==='reseau')     scroll.innerHTML=htmlReseau();
+    else if(n==='circuits') scroll.innerHTML=htmlCircuits();
+    else                 scroll.innerHTML=htmlInfos();
+  }
+
+  const togs=document.getElementById('map-togs');
+  if(n==='reseau'){
     map.removeLayer(circuitGroup);
-    document.getElementById('legend').style.display = 'none';
-    tog.style.display = 'flex';
-    Object.entries(netGroups).forEach(([k,g]) => { if(netVisible[k]) g.addTo(map); });
+    document.getElementById('legend').style.display='none';
+    if(togs) togs.style.display='flex';
+    if(netReady) Object.entries(netGroups).forEach(([k,g])=>{if(netVisible[k])g.addTo(map);});
+    else loadReseau();
   } else {
-    // Ré-afficher circuits
     circuitGroup.addTo(map);
-    document.getElementById('legend').style.display = '';
-    tog.style.display = 'none';
-    Object.values(netGroups).forEach(g => map.removeLayer(g));
+    document.getElementById('legend').style.display='';
+    if(togs) togs.style.display='none';
+    Object.values(netGroups).forEach(g=>map.removeLayer(g));
   }
 }
 
 // ══════════════════════════════════════════════════════════
-// TOGGLE SIDEBAR
+// TOGGLE SIDEBAR DESKTOP
 // ══════════════════════════════════════════════════════════
-function toggleSide() {
-  sideOpen = !sideOpen;
-  const side = document.getElementById('side');
-  const btn  = document.getElementById('side-toggle');
-  side.classList.toggle('hidden', !sideOpen);
-  btn.textContent = sideOpen ? '‹' : '›';
-  setTimeout(() => map.invalidateSize(), 280);
+function toggleSide(){
+  sideOpen=!sideOpen;
+  document.getElementById('side').classList.toggle('hidden',!sideOpen);
+  document.getElementById('side-tog').textContent=sideOpen?'‹':'›';
+  setTimeout(()=>map.invalidateSize(),280);
+}
+
+// ══════════════════════════════════════════════════════════
+// DRAWER MOBILE
+// ══════════════════════════════════════════════════════════
+function openDrawer(){
+  document.getElementById('mob-overlay').classList.add('open');
+  document.getElementById('mob-drawer').classList.add('open');
+  // Initialiser le contenu si vide
+  const scroll=document.getElementById('mob-scroll');
+  if(!scroll.innerHTML.trim()){
+    if(currentTab==='reseau')      scroll.innerHTML=htmlReseau();
+    else if(currentTab==='circuits') scroll.innerHTML=htmlCircuits();
+    else                            scroll.innerHTML=htmlInfos();
+  }
+}
+function closeDrawer(){
+  document.getElementById('mob-overlay').classList.remove('open');
+  document.getElementById('mob-drawer').classList.remove('open');
 }
 
 // ══════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════
-buildList();
+injectTabContent();
 buildLegend();
-loadReseau(); // Chargement immédiat (onglet Réseau est affiché par défaut)
-setTimeout(() => document.getElementById('gpsfab')?.classList.remove('blink'), 9000);
+// Onglet Réseau actif par défaut → masquer circuits
+map.removeLayer(circuitGroup);
+document.getElementById('legend').style.display='none';
+document.getElementById('map-togs').style.display='flex';
+loadReseau();
+setTimeout(()=>document.getElementById('gpsfab')?.classList.remove('blink'),9000);
 </script>
 </body>
 </html>
