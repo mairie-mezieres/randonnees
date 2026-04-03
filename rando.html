@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>Randonnées · Mézières-lez-Cléry</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Playfair+Display:ital,wght@0,500;1,500&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -13,7 +13,7 @@
   --forest:#1e3a1e; --moss:#3d6b3d; --sage:#6b9e5e; --light:#a8c89a;
   --cream:#f5f0e8;  --parch:#ede8dc; --gold:#c9a84c;
   --route:#3b82f6;  --terre:#16a34a; --afr:#ea580c;
-  --parcours:#7c3aed;
+  --parcours:#7c3aed; --leaf:#2d6a4f;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--forest);overflow:hidden}
@@ -22,7 +22,7 @@ html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--fo
 /* ── HEADER ── */
 .hd{background:var(--forest);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(168,200,154,.2);flex-shrink:0}
 .hs{font-size:.6rem;color:var(--sage);text-transform:uppercase;letter-spacing:.07em}
-.ht{font-family:'Playfair Display',serif;font-size:clamp(.82rem,2vw,1.05rem);color:var(--cream)}
+.ht{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(.9rem,2vw,1.1rem);color:var(--cream)}
 .ht em{color:var(--light);font-style:italic}
 .hr{text-align:right;font-size:.68rem;color:var(--light)}
 
@@ -111,7 +111,7 @@ html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--fo
 .dep-btn{flex:1;background:var(--parch);border:1px solid rgba(0,0,0,.1);border-radius:6px;color:var(--moss);font-family:inherit;font-size:.68rem;font-weight:600;padding:6px 2px;cursor:pointer;text-align:center;transition:all .15s}
 .dep-btn.active{background:rgba(30,58,30,.1);border-color:var(--forest);color:var(--forest)}
 .dep-info{font-size:.67rem;color:var(--moss);margin-top:3px;min-height:1em}
-.gen-btn{width:100%;background:var(--forest);border:none;border-radius:8px;color:var(--cream);font-family:'Playfair Display',serif;font-size:.85rem;padding:9px;cursor:pointer;transition:background .2s}
+.gen-btn{width:100%;background:var(--forest);border:none;border-radius:8px;color:var(--cream);font-family:'Nunito',sans-serif;font-weight:900;font-size:.85rem;padding:9px;cursor:pointer;transition:background .2s}
 .gen-btn:hover{background:var(--moss)}
 .gen-btn:disabled{opacity:.4;cursor:not-allowed}
 .gen-result{display:none;background:var(--parch);border:1px solid rgba(0,0,0,.1);border-radius:8px;padding:10px;font-size:.73rem;color:var(--forest)}
@@ -195,8 +195,8 @@ html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--fo
 
 <!-- HEADER -->
 <div class="hd">
-  <div><div class="hs">Commune de</div><div class="ht">Mézières-lez-Cléry</div></div>
-  <div class="hr"><div class="hs" style="text-align:right">Randonnées pédestres</div>14 circuits · 3 à 22 km</div>
+  <div><div class="hs">Commune de</div><div class="ht">Mézières-lez-Cléry <em>· Réseau & Parcours</em></div></div>
+  <div class="hr"><div class="hs" style="text-align:right">Randonnées pédestres</div>Circuits & parcours libres</div>
 </div>
 
 <div class="body">
@@ -613,15 +613,12 @@ function segLen(seg){
 }
 
 // ══════════════════════════════════════════════════════════
-// ROUTEUR v3.6.1 — algorithme boucle réaliste
-// Contraintes :
-//  - distance finale ±15% de la cible
-//  - pas plus d'un croisement de chemin
-//  - snap du point de départ sur le réseau le plus proche
-//  - segments filtrés selon longueur max compatible avec la cible
+// ROUTEUR v3.6.3 — boucle réaliste sur réseau GeoJSON
+// Principe : snap sur le réseau le plus proche, exploration
+// souple pour former une boucle cohérente avec la distance cible.
+// Tolérances larges pour garantir un résultat exploitable.
 // ══════════════════════════════════════════════════════════
 
-// Générateur pseudo-aléatoire (seed reproductible)
 function makeRng(seed) {
   let s = (seed || Date.now()) >>> 0;
   return () => {
@@ -632,174 +629,123 @@ function makeRng(seed) {
   };
 }
 
-// Snap : trouver le point + proche sur tout le réseau disponible
-// Retourne {pt, segIdx, ptIdx} dans allSegs
-function snapToNetwork(coord, allSegs) {
-  let bestD = Infinity, bestSeg = null, bestPtIdx = 0, bestPt = null;
-  allSegs.forEach((seg, si) => {
-    seg.forEach((p, pi) => {
+// Snap : point le plus proche sur tout le réseau
+function snapToNetwork(coord, segs) {
+  let bestD = Infinity, bestPt = coord;
+  segs.forEach(seg => {
+    seg.forEach(p => {
       const d = dist(coord, p);
-      if (d < bestD) { bestD = d; bestSeg = si; bestPtIdx = pi; bestPt = p; }
+      if (d < bestD) { bestD = d; bestPt = p; }
     });
   });
-  return { d: bestD, segIdx: bestSeg, ptIdx: bestPtIdx, pt: bestPt };
+  return { d: bestD, pt: bestPt };
 }
-
-// Distance de jonction maximale : petit pour éviter les bonds aberrants
-const JOIN_MAX = 200; // m — on ne "saute" pas plus de 200m entre deux segments
 
 function buildRealRoute(targetM, pref, seed) {
   const rng = makeRng(seed);
 
-  // — 1. Choisir le réseau selon préférence & mode —
+  // 1. Réseau selon préférence — toujours utiliser tout le réseau en fallback
   let allSegs = [];
+  const allAvail = () => {
+    if (crReady && geoData.cheminsRoutes.length > 0) return geoData.cheminsRoutes;
+    return [...geoData.terre, ...geoData.route, ...geoData.afr];
+  };
   if (crReady && geoData.cheminsRoutes.length > 0) {
-    if (genMode === 'velo') {
-      const r = geoData.cheminsRoutes.filter(s => s._type === 'route');
-      const c = geoData.cheminsRoutes.filter(s => s._type === 'chemin');
-      allSegs = r.length ? [...r, ...c] : [...geoData.cheminsRoutes];
-    } else if (pref === 'routes') {
-      const r = geoData.cheminsRoutes.filter(s => s._type === 'route');
-      const c = geoData.cheminsRoutes.filter(s => s._type === 'chemin');
-      allSegs = [...(r.length ? r : []), ...c];
-    } else if (pref === 'chemins') {
-      const c = geoData.cheminsRoutes.filter(s => s._type === 'chemin');
-      const r = geoData.cheminsRoutes.filter(s => s._type === 'route');
-      allSegs = [...(c.length ? c : []), ...r];
-    } else {
-      allSegs = [...geoData.cheminsRoutes];
-    }
+    const r = geoData.cheminsRoutes.filter(s => s._type === 'route');
+    const c = geoData.cheminsRoutes.filter(s => s._type === 'chemin');
+    if (genMode === 'velo') allSegs = r.length ? [...r, ...c] : [...geoData.cheminsRoutes];
+    else if (pref === 'routes') allSegs = [...r, ...c];
+    else if (pref === 'chemins') allSegs = c.length ? [...c, ...r] : [...geoData.cheminsRoutes];
+    else allSegs = [...geoData.cheminsRoutes];
+    if (!allSegs.length) allSegs = [...geoData.cheminsRoutes];
   } else {
-    if (genMode === 'velo') allSegs = [...geoData.route, ...geoData.terre];
-    else if (pref === 'routes') allSegs = [...geoData.route, ...geoData.terre];
-    else if (pref === 'chemins') allSegs = [...geoData.terre, ...geoData.route];
-    else allSegs = [...geoData.terre, ...geoData.route];
+    const r = geoData.route, t = geoData.terre;
+    allSegs = pref === 'routes' ? [...r, ...t] : [...t, ...r, ...geoData.afr];
+    if (!allSegs.length) allSegs = [...geoData.afr];
   }
   if (!allSegs.length) return null;
 
-  // — 2. Snap du point de départ sur le réseau —
+  // 2. Snap sur le réseau (sans limite — on prend toujours le plus proche)
   const snap = snapToNetwork(departCoords, allSegs);
-  // Si trop loin du réseau (>500m), refuser
-  if (snap.d > 500) return null;
-  const startPt = snap.pt; // point de départ réel sur le réseau
+  const startPt = snap.pt;
 
-  // — 3. Filtrer les segments trop longs —
-  // Un seul segment ne doit pas dépasser 40% de la distance cible
-  const maxSegLen = targetM * 0.4;
-  // Et les segments trop courts sont aussi ignorés (< 20m)
-  const eligible = allSegs.filter(s => s._len >= 20 && s._len <= Math.max(maxSegLen, 300));
-  if (eligible.length < 3) return null; // réseau trop pauvre pour cette distance
+  // 3. JOIN_MAX adaptatif : 15% de la cible, min 500m, max 2000m
+  //    Assez grand pour garantir la connexité même sur petites distances
+  const JOIN_BASE = Math.min(2000, Math.max(500, targetM * 0.15));
 
-  // — 4. Construction de la boucle —
-  // Algorithme : 
-  //   Phase A (s'éloigner) : choisir segments qui augmentent la dist depuis le départ
-  //   Phase B (revenir)    : choisir segments qui se rapprochent du départ
-  //   Arrêt : quand totalDist ≥ targetM ET distance_au_départ ≤ JOIN_MAX
-  //   Contrainte croisement : pas plus d'1 utilisation par segment
+  // 4. Tous les segments >= 10m sont éligibles
+  const eligible = allSegs.filter(s => s._len >= 10);
+  if (!eligible.length) return null;
 
   const usedKeys = new Set();
   const routePts = [startPt];
   let totalDist = 0;
   let current = startPt;
-  let crossings = 0; // compteur de croisements (jonctions > 5m)
-  const MAX_CROSSINGS = 1;
-  const MAX_ITERS = 80;
 
-  // Trouver les candidats depuis la position courante
-  function getCandidates(pos, wantAway) {
-    const cands = [];
+  // Candidats avec seuil de jonction variable (fallback progressif)
+  function getCands(pos, wantAway, joinMax) {
+    const out = [];
     eligible.forEach(seg => {
       if (usedKeys.has(seg._key)) return;
       const d0 = dist(pos, seg[0]);
       const d1 = dist(pos, seg[seg.length - 1]);
-      const forward = d0 <= d1;
-      const entryD = forward ? d0 : d1;
-      const exitPt = forward ? seg[seg.length - 1] : seg[0];
-
-      // Seuil de jonction strict
-      if (entryD > JOIN_MAX) return;
-
-      // Vérifier que ce segment ne dépasse pas la distance cible restante
-      const remaining = targetM - totalDist;
-      // En phase A on accepte tout, en phase B on préfère les courts
-      const ok = wantAway
-        ? (totalDist + seg._len < targetM * 1.1)  // phase A : pas dépasser 110%
-        : true;                                      // phase B : toujours
-
-      if (!ok) return;
-
-      const distExit = dist(exitPt, startPt);
-      const isJunction = entryD > 5; // croisement si jonction > 5m
-
-      cands.push({ seg, forward, entryD, exitPt, distExit, isJunction });
+      const fwd = d0 <= d1;
+      const entryD = fwd ? d0 : d1;
+      if (entryD > joinMax) return;
+      const exitPt = fwd ? seg[seg.length - 1] : seg[0];
+      out.push({ seg, fwd, entryD, exitPt,
+        exitDistHome: dist(exitPt, startPt) });
     });
+    if (wantAway) out.sort((a,b) => b.exitDistHome - a.exitDistHome || a.entryD - b.entryD);
+    else          out.sort((a,b) => a.exitDistHome - b.exitDistHome || a.entryD - b.entryD);
+    return out;
+  }
 
-    // Trier : en phase A préférer segments qui éloignent du départ
-    // En phase B préférer segments qui rapprochent du départ
-    if (wantAway) {
-      cands.sort((a, b) => b.distExit - a.distExit || a.entryD - b.entryD);
-    } else {
-      cands.sort((a, b) => a.distExit - b.distExit || a.entryD - b.entryD);
+  // Candidats avec fallback progressif si réseau fragmenté
+  function getCandsAuto(pos, wantAway) {
+    for (const mult of [1, 2, 4]) {
+      const c = getCands(pos, wantAway, JOIN_BASE * mult);
+      if (c.length) return c;
     }
-    return cands;
+    return [];
   }
 
   function addSeg(c) {
-    const pts = c.forward ? c.seg : [...c.seg].reverse();
-    if (c.entryD > 5) {
-      // Jonction = croisement
-      routePts.push(pts[0]);
-      totalDist += c.entryD;
-      crossings++;
-    }
+    const pts = c.fwd ? c.seg : [...c.seg].reverse();
+    if (c.entryD > 8) { routePts.push(pts[0]); totalDist += c.entryD; }
     pts.forEach(p => routePts.push(p));
     totalDist += c.seg._len;
     usedKeys.add(c.seg._key);
     return pts[pts.length - 1];
   }
 
-  // Phase A : s'éloigner jusqu'à ~50% de la cible
-  const phase1Target = targetM * 0.50;
-  let iters = 0;
-  while (totalDist < phase1Target && iters < MAX_ITERS) {
-    iters++;
-    const cands = getCandidates(current, true).filter(c =>
-      !c.isJunction || crossings < MAX_CROSSINGS
-    );
+  // Phase A : s'éloigner jusqu'à ~48% de la cible
+  const phaseACible = targetM * 0.48;
+  for (let i = 0; i < 80 && totalDist < phaseACible; i++) {
+    const cands = getCandsAuto(current, true);
     if (!cands.length) break;
-    // Choisir parmi les 3 meilleurs avec un peu d'aléatoire
-    const top = cands.slice(0, Math.min(3, cands.length));
-    const chosen = top[Math.floor(rng() * top.length)];
-    current = addSeg(chosen);
+    const top = cands.slice(0, Math.min(4, cands.length));
+    const pool = top.filter(c => c.seg._len <= targetM * 0.7);
+    current = addSeg((pool.length ? pool : top)[Math.floor(rng() * (pool.length || top.length))]);
   }
 
   // Phase B : revenir vers le départ
-  iters = 0;
-  while (iters < MAX_ITERS) {
-    iters++;
+  const maxTotal = targetM * 2.0;
+  for (let i = 0; i < 100 && totalDist < maxTotal; i++) {
     const distHome = dist(current, startPt);
-    // Condition d'arrêt : assez de distance ET assez proche du départ
-    if (totalDist >= targetM * 0.85 && distHome <= JOIN_MAX) break;
-    if (totalDist >= targetM * 1.15) break; // ne pas dépasser 115%
-
-    const cands = getCandidates(current, false).filter(c =>
-      !c.isJunction || crossings < MAX_CROSSINGS
-    );
+    if (totalDist >= targetM * 0.65 && distHome <= JOIN_BASE * 2) break;
+    const cands = getCandsAuto(current, false);
     if (!cands.length) break;
-    // En phase B : toujours prendre le meilleur (plus déterministe)
     current = addSeg(cands[0]);
   }
 
-  // Fermer la boucle vers le point de départ
-  const closingDist = dist(current, startPt);
-  if (closingDist > 0) {
-    routePts.push(startPt);
-    totalDist += closingDist;
-  }
+  // Fermer la boucle vers le point snap du départ
+  routePts.push(startPt);
+  totalDist += dist(current, startPt);
 
-  // Vérifier que la distance est cohérente (±40% de la cible)
+  // Validation : accepter entre 35% et 250% de la cible
   const ratio = totalDist / targetM;
-  if (ratio < 0.6 || ratio > 1.5) return null; // trop loin de la cible
+  if (ratio < 0.35 || ratio > 2.5 || routePts.length < 4) return null;
 
   return { coords: routePts, distM: totalDist };
 }
