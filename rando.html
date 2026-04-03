@@ -264,7 +264,8 @@ let departCoords  = [47.818096, 1.801526];
 let departMarker  = null;
 let pickingDepart = false;
 let netReady      = false;
-let geoData       = {route:[], terre:[], afr:[]};
+let geoData       = {route:[], terre:[], afr:[], cheminsRoutes:[]};
+let crReady       = false;  // chemins-routes.geojson chargé
 let gpsWatchId    = null;
 let userMarker    = null;
 let userAccuracy  = null;
@@ -464,6 +465,48 @@ TRACKS.forEach(t => {
 });
 
 // ══════════════════════════════════════════════════════════
+// CHEMINS-ROUTES — chargement silencieux pour le routeur
+// Ne s'affiche pas comme calque, uniquement pour générer des
+// parcours cohérents en respectant la nature des voies
+// ══════════════════════════════════════════════════════════
+async function loadCheminsRoutes() {
+  try {
+    const r = await fetch('./data/chemins-routes.geojson');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const gj = await r.json();
+    geoData.cheminsRoutes = [];
+    let _crCounter = 0;
+    (gj.features || []).forEach(f => {
+      const geom = f.geometry; if (!geom) return;
+      // Conserver le type original (route/chemin/track) pour qualifier les voies
+      const highway = f.properties?.highway || f.properties?.type || 'path';
+      const name    = f.properties?.name || f.properties?.nom || null;
+      const isRoute = ['primary','secondary','tertiary','unclassified','residential','service'].includes(highway);
+      const addLine = coords => {
+        if (coords.length < 2) return;
+        const seg = [...coords];
+        seg._key  = 'cr_' + (++_crCounter);
+        seg._type = isRoute ? 'route' : 'chemin';  // pour la description
+        seg._name = name;
+        let l = 0;
+        for (let i = 1; i < seg.length; i++) l += dist(seg[i-1], seg[i]);
+        seg._len = l;
+        geoData.cheminsRoutes.push(seg);
+      };
+      if (geom.type === 'LineString')
+        addLine(geom.coordinates.map(c => [c[1], c[0]]));
+      else if (geom.type === 'MultiLineString')
+        geom.coordinates.forEach(l => addLine(l.map(c => [c[1], c[0]])));
+    });
+    crReady = true;
+    console.log(`✅ chemins-routes: ${geoData.cheminsRoutes.length} segments chargés`);
+  } catch(e) {
+    console.warn('⚠️ chemins-routes.geojson indisponible, fallback routes/terres:', e.message);
+    crReady = false;
+  }
+}
+
+// ══════════════════════════════════════════════════════════
 // RÉSEAU — chargement GeoJSON
 // ══════════════════════════════════════════════════════════
 const netGroups  = {route:L.layerGroup(), terre:L.layerGroup(), afr:L.layerGroup()};
@@ -596,21 +639,45 @@ function makeRng(seed) {
 function buildRealRoute(targetM, pref, seed) {
   const rng = makeRng(seed || Date.now());
 
-  // Sélection selon préférence & mode
-  let primary=[], fallback=[];
-  if(genMode==='velo'){
-    primary=[...geoData.route,...geoData.terre];
-  } else if(pref==='chemins'){
-    primary=[...geoData.terre];
-    fallback=[...geoData.route];
-  } else if(pref==='routes'){
-    primary=[...geoData.route];
-    fallback=[...geoData.terre];
+  // Sélection du réseau de base :
+  // Si chemins-routes.geojson est chargé → réseau fusionné en priorité (meilleure connexité)
+  // On garde la distinction route/chemin pour la description finale
+  let allAvail = [];
+  if (crReady && geoData.cheminsRoutes.length > 0) {
+    // Réseau fusionné : tous les segments praticables bien connectés
+    // On filtre selon la préférence mais sans pénaliser la connexité
+    if (genMode === 'velo') {
+      // Vélo : préférer les routes goudronnées du réseau fusionné
+      const routes = geoData.cheminsRoutes.filter(s => s._type === 'route');
+      const chemins = geoData.cheminsRoutes.filter(s => s._type === 'chemin');
+      allAvail = [...routes, ...chemins];
+    } else if (pref === 'routes') {
+      const routes = geoData.cheminsRoutes.filter(s => s._type === 'route');
+      const chemins = geoData.cheminsRoutes.filter(s => s._type === 'chemin');
+      allAvail = routes.length > 0 ? [...routes, ...chemins] : [...geoData.cheminsRoutes];
+    } else if (pref === 'chemins') {
+      const chemins = geoData.cheminsRoutes.filter(s => s._type === 'chemin');
+      const routes = geoData.cheminsRoutes.filter(s => s._type === 'route');
+      allAvail = chemins.length > 0 ? [...chemins, ...routes] : [...geoData.cheminsRoutes];
+    } else {
+      // Mixte : tout le réseau fusionné
+      allAvail = [...geoData.cheminsRoutes];
+    }
   } else {
-    primary=[...geoData.terre,...geoData.route];
+    // Fallback : anciens calques séparés routes/terres/afr
+    let primary=[], fallback=[];
+    if (genMode === 'velo') {
+      primary = [...geoData.route, ...geoData.terre];
+    } else if (pref === 'chemins') {
+      primary = [...geoData.terre]; fallback = [...geoData.route];
+    } else if (pref === 'routes') {
+      primary = [...geoData.route]; fallback = [...geoData.terre];
+    } else {
+      primary = [...geoData.terre, ...geoData.route];
+    }
+    allAvail = [...primary, ...fallback];
   }
-  const allAvail=[...primary,...fallback];
-  if(!allAvail.length) return null;
+  if (!allAvail.length) return null;
 
   const used=new Set();
   const routePts=[departCoords];
@@ -817,8 +884,26 @@ function generateRoute() {
       });
 
       rtitle.textContent=`Boucle de ${realKm} km`;
+      // Calculer la proportion route/chemin si chemins-routes disponible
+      let networkTxt = 'Tracé sur les voies réelles de la commune.';
+      if (crReady && best.coords.length > 0) {
+        // Estimer la proportion route vs chemin dans le parcours généré
+        // en comptant les segments utilisés par type
+        const usedSegs = geoData.cheminsRoutes.filter(s => {
+          // Un segment est "utilisé" si au moins un de ses points est proche du tracé
+          const mid = s[Math.floor(s.length/2)];
+          return best.coords.some(p => dist(p, mid) < 80);
+        });
+        const totalLen = usedSegs.reduce((a,s) => a + s._len, 0);
+        const routeLen = usedSegs.filter(s => s._type==='route').reduce((a,s) => a + s._len, 0);
+        const pctRoute = totalLen > 0 ? Math.round(routeLen / totalLen * 100) : 0;
+        const pctChemin = 100 - pctRoute;
+        if (pctChemin >= 70) networkTxt = `Parcours majoritairement sur chemins de terre (${pctChemin}%) avec quelques tronçons goudronnés.`;
+        else if (pctRoute >= 70) networkTxt = `Parcours majoritairement sur routes (${pctRoute}%) avec quelques chemins.`;
+        else networkTxt = `Parcours mixte : ~${pctChemin}% chemins de terre, ~${pctRoute}% routes goudronnées.`;
+      }
       rbody.innerHTML=`<strong>${{pied:'À pied',velo:'À vélo',cheval:'À cheval'}[genMode]}</strong> · ⏱ ${dureeStr}<br>
-        Tracé sur les voies réelles de la commune.${genMode==='pied'?'<br><small style="color:var(--moss)">Quelques tronçons de route peuvent être utilisés pour rejoindre les chemins.</small>':''}`;
+        ${networkTxt}`;
       document.getElementById('gen-gps-btn').style.display='';
 
     }catch(e){
@@ -1031,6 +1116,8 @@ map.removeLayer(circuitGroup);
 document.getElementById('legend').style.display='none';
 document.getElementById('map-togs').style.display='flex';
 loadReseau();
+// Charger chemins-routes en arrière-plan (silencieux, pour le générateur)
+loadCheminsRoutes();
 setTimeout(()=>document.getElementById('gpsfab')?.classList.remove('blink'),9000);
 // Ouvrir le drawer mobile au démarrage sur petit écran
 if(window.innerWidth<=640){
