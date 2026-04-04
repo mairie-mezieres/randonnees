@@ -409,7 +409,7 @@ function htmlReseau() {
       <div class="${pSel('mixte')}"   data-pref="mixte"   onclick="selPref(this)"><span class="em">🗺️</span>Mixte</div>
     </div></div>
     <div><div class="gen-lbl">Distance souhaitée</div>
-    <select class="gen-sel" id="gen-dist" onchange="updateDuree()">
+    <select class="gen-sel" id="gen-dist" onchange="updateDuree(this)">
       ${selOpt}
     </select>
     <div style="font-size:.67rem;color:var(--moss);margin-top:2px" id="dist-duree">· ${dureeLabel}</div></div>
@@ -1100,27 +1100,36 @@ function buildRealRoute(targetM, pref, seed) {
 }
 
 function selMode(el) {
-  // Ne toucher que les modes (pied/velo), pas les prefs
-  el.closest('.gen-modes').querySelectorAll('.gen-mode').forEach(e=>e.classList.remove('sel'));
-  el.classList.add('sel');
   genMode=el.dataset.mode;
+  // Synchroniser TOUS les boutons mode (desktop + mobile)
+  document.querySelectorAll('[data-mode]').forEach(e => {
+    e.classList.toggle('sel', e.dataset.mode === genMode);
+  });
   updateDuree();
 }
 
 function selPref(el) {
-  el.closest('.gen-modes').querySelectorAll('.gen-mode').forEach(e=>e.classList.remove('sel'));
-  el.classList.add('sel');
   genPref=el.dataset.pref;
+  // Synchroniser TOUS les boutons pref (desktop + mobile)
+  document.querySelectorAll('[data-pref]').forEach(e => {
+    e.classList.toggle('sel', e.dataset.pref === genPref);
+  });
 }
 
-function updateDuree() {
-  const sel=document.getElementById('gen-dist'); if(!sel) return;
-  genDist = sel.value; // Sauvegarder la distance choisie
-  const opt=sel.options[sel.selectedIndex]; if(!opt) return;
-  const attr=genMode==='velo'?'data-velo':'data-pied';
-  const duree=opt.getAttribute(attr)||'';
-  const lbl=document.getElementById('dist-duree');
-  if(lbl) lbl.textContent=duree?`· ${duree}`:'';
+function updateDuree(srcEl) {
+  // Si appelé depuis un select, lire sa valeur directement
+  if (srcEl && srcEl.value) genDist = srcEl.value;
+  // Synchroniser tous les selects gen-dist (desktop + mobile)
+  document.querySelectorAll('#gen-dist').forEach(sel => { sel.value = genDist; });
+  // Mettre à jour tous les labels durée
+  const attr = genMode==='velo' ? 'data-velo' : 'data-pied';
+  document.querySelectorAll('#gen-dist').forEach(sel => {
+    const opt = sel.options?.[sel.selectedIndex];
+    const duree = opt ? opt.getAttribute(attr) : '';
+    // Trouver le label associé (juste après le select dans le DOM)
+    const lbl = sel.parentElement?.querySelector('#dist-duree');
+    if (lbl) lbl.textContent = duree ? `· ${duree}` : '';
+  });
 }
 
 function setDepart(mode) {
