@@ -794,16 +794,24 @@ function snapToGraph(coord, graph) {
 
 // Dijkstra : plus court chemin entre deux nœuds
 function dijkstra(graph, fromKey, toKey, usedEdges, pref, maxDist) {
-  const dists = new Map(); // nodeKey → best dist
-  const prev = new Map();  // nodeKey → {fromKey, edge}
+  const dists = new Map();
+  const prev = new Map();
   dists.set(fromKey, 0);
 
-  // Simple priority queue (suffisant pour nos petits graphes)
   const queue = [{ key: fromKey, d: 0 }];
   const visited = new Set();
 
+  // Coût d'une arête : distance réelle × pénalité type de voie
+  function edgeCost(e) {
+    const t = e.type || 'chemin';
+    let typePenalty = 1;
+    if (pref === 'chemins' && t === 'route') typePenalty = 4;
+    else if (pref === 'routes' && t === 'chemin') typePenalty = 4;
+    const usedPenalty = usedEdges && usedEdges.has(e.segKey) ? 2.0 : 1.0;
+    return e.dist * typePenalty * usedPenalty;
+  }
+
   while (queue.length > 0) {
-    // Extraire le min
     let minIdx = 0;
     for (let i = 1; i < queue.length; i++) {
       if (queue[i].d < queue[minIdx].d) minIdx = i;
@@ -818,9 +826,7 @@ function dijkstra(graph, fromKey, toKey, usedEdges, pref, maxDist) {
 
     const edges = graph.adj.get(cur) || [];
     for (const e of edges) {
-      // Pénaliser légèrement les arêtes déjà utilisées pour varier
-      const penalty = usedEdges && usedEdges.has(e.segKey) ? 3.0 : 1.0;
-      const nd = curD + e.dist * penalty;
+      const nd = curD + edgeCost(e);
       if (!dists.has(e.to) || nd < dists.get(e.to)) {
         dists.set(e.to, nd);
         prev.set(e.to, { from: cur, edge: e });
@@ -831,7 +837,6 @@ function dijkstra(graph, fromKey, toKey, usedEdges, pref, maxDist) {
 
   if (!prev.has(toKey) && fromKey !== toKey) return null;
 
-  // Reconstruire le chemin
   const path = [];
   let cur = toKey;
   let totalDist = 0;
@@ -856,13 +861,53 @@ function buildRealRoute(targetM, pref, seed) {
   const startKey = snap.key;
   const startPt = snap.pt;
 
-  // Poids d'une arête selon préférence
+  // Poids d'une arête selon préférence — TRÈS contrasté
   function edgeWeight(e) {
     const t = e.type || 'chemin';
-    if (pref === 'routes') return t === 'route' ? 5 : 0.4;
-    if (pref === 'chemins') return t === 'chemin' ? 5 : 0.4;
-    if (genMode === 'velo') return t === 'route' ? 2 : 1;
-    return t === 'chemin' ? 1.5 : 1;
+    if (pref === 'routes') return t === 'route' ? 10 : 0.05;
+    if (pref === 'chemins') return t === 'chemin' ? 10 : 0.05;
+    if (genMode === 'velo') return t === 'route' ? 3 : 1;
+    return t === 'chemin' ? 2 : 1;
+  }
+
+  // ── Anti-croisement ──
+  // Teste si le segment [A,B] croise [C,D] (en 2D lat/lng)
+  function segsCross(a, b, c, d) {
+    const d1 = (d[1]-c[1])*(a[0]-c[0]) - (d[0]-c[0])*(a[1]-c[1]);
+    const d2 = (d[1]-c[1])*(b[0]-c[0]) - (d[0]-c[0])*(b[1]-c[1]);
+    const d3 = (b[1]-a[1])*(c[0]-a[0]) - (b[0]-a[0])*(c[1]-a[1]);
+    const d4 = (b[1]-a[1])*(d[0]-a[0]) - (b[0]-a[0])*(d[1]-a[1]);
+    if (((d1>0&&d2<0)||(d1<0&&d2>0)) && ((d3>0&&d4<0)||(d3<0&&d4>0))) return true;
+    return false;
+  }
+
+  // Vérifie si une arête (liste de pts) croise le parcours existant
+  // On vérifie un échantillon pour garder la perf
+  function wouldCross(edgePts, existingPts) {
+    if (existingPts.length < 4) return false;
+    // Échantillonner l'arête candidate
+    const step1 = Math.max(1, Math.floor(edgePts.length / 6));
+    const step2 = Math.max(1, Math.floor(existingPts.length / 40));
+    for (let i = 0; i < edgePts.length - 1; i += step1) {
+      const a = edgePts[i], b = edgePts[Math.min(i+step1, edgePts.length-1)];
+      // Ne pas vérifier les tout derniers segments (jonction normale)
+      for (let j = 0; j < existingPts.length - 4; j += step2) {
+        const c = existingPts[j], d = existingPts[Math.min(j+step2, existingPts.length-5)];
+        if (segsCross(a, b, c, d)) return true;
+      }
+    }
+    return false;
+  }
+
+  // Construire la liste des points du parcours en cours
+  function currentRoutePts() {
+    const pts = [];
+    for (const seg of routeSegments) {
+      for (let j = (pts.length === 0 ? 0 : 1); j < seg.pts.length; j++) {
+        pts.push(seg.pts[j]);
+      }
+    }
+    return pts;
   }
 
   // Explorer : marche aléatoire pondérée sur le graphe
@@ -877,10 +922,8 @@ function buildRealRoute(targetM, pref, seed) {
   for (let i = 0; i < 120 && totalDist < phaseATarget; i++) {
     const edges = (graph.adj.get(curKey) || []).filter(e => !usedEdges.has(e.segKey));
     if (edges.length === 0) {
-      // Deadlock : essayer les arêtes déjà utilisées pour sortir
       const allEdges = graph.adj.get(curKey) || [];
       if (allEdges.length === 0) break;
-      // Prendre une arête déjà utilisée au hasard pour se débloquer
       const e = allEdges[Math.floor(rng() * allEdges.length)];
       routeSegments.push({ pts: e.pts, dist: e.dist, type: e.type });
       totalDist += e.dist;
@@ -889,15 +932,16 @@ function buildRealRoute(targetM, pref, seed) {
       continue;
     }
 
-    // Pondérer : préférence de voie + s'éloigner du départ
+    const curPts = currentRoutePts();
+
     const scored = edges.map(e => {
       const ePt = graph.nodes.get(e.to);
       const dHome = ePt ? dist(ePt, startPt) : 0;
-      // Favoriser les arêtes qui éloignent du départ en phase A
       const dirBonus = Math.max(0.5, dHome / Math.max(1, targetM * 0.2));
-      // Limiter les très longs segments qui dépasseraient la cible
       const lenOk = (totalDist + e.dist <= targetM * 1.3) ? 1 : 0.1;
-      return { e, score: edgeWeight(e) * dirBonus * lenOk * (0.5 + rng() * 0.8) };
+      // Pénalité croisement
+      const crossPenalty = wouldCross(e.pts, curPts) ? 0.05 : 1;
+      return { e, score: edgeWeight(e) * dirBonus * lenOk * crossPenalty * (0.5 + rng() * 0.8) };
     });
     scored.sort((a, b) => b.score - a.score);
 
@@ -910,26 +954,25 @@ function buildRealRoute(targetM, pref, seed) {
   }
 
   // Phase B : continuer en favorisant les arêtes qui ramènent vers le départ
-  // mais en ajoutant de la distance si on n'a pas assez
   const phaseBTarget = targetM * 0.85;
   for (let i = 0; i < 120 && totalDist < phaseBTarget; i++) {
     const dHome = dist(graph.nodes.get(curKey), startPt);
-
-    // Si on est tout près du départ et qu'on n'a pas assez de distance → s'éloigner
     const wantAway = dHome < targetM * 0.05 && totalDist < targetM * 0.7;
 
     const edges = (graph.adj.get(curKey) || []).filter(e => !usedEdges.has(e.segKey));
     if (edges.length === 0) break;
 
+    const curPts = currentRoutePts();
+
     const scored = edges.map(e => {
       const ePt = graph.nodes.get(e.to);
       const eDHome = ePt ? dist(ePt, startPt) : Infinity;
-      // En phase B : favoriser le retour sauf si wantAway
       const dirScore = wantAway
         ? Math.max(0.3, eDHome / Math.max(1, targetM * 0.2))
         : Math.max(0.3, 1 / (1 + eDHome / 500));
       const lenOk = (totalDist + e.dist <= targetM * 1.5) ? 1 : 0.05;
-      return { e, score: edgeWeight(e) * dirScore * lenOk * (0.5 + rng() * 0.8) };
+      const crossPenalty = wouldCross(e.pts, curPts) ? 0.05 : 1;
+      return { e, score: edgeWeight(e) * dirScore * lenOk * crossPenalty * (0.5 + rng() * 0.8) };
     });
     scored.sort((a, b) => b.score - a.score);
 
@@ -950,7 +993,6 @@ function buildRealRoute(targetM, pref, seed) {
         totalDist += step.edge.dist;
       }
     } else {
-      // Impossible de revenir via le graphe → échec
       return null;
     }
   }
@@ -964,7 +1006,6 @@ function buildRealRoute(targetM, pref, seed) {
     }
   }
 
-  // Validation : 30% à 300% de la cible (souple pour les petits réseaux)
   const ratio = totalDist / targetM;
   if (ratio < 0.30 || ratio > 3.0 || routePts.length < 4) return null;
 
@@ -1012,10 +1053,12 @@ function setDepart(mode) {
     map.getContainer().style.cursor='';
     if(departMarker){map.removeLayer(departMarker);departMarker=null;}
   } else if(mode==='carte'){
-    info().forEach(el=>el.textContent='🖱️ Cliquez sur la carte…');
+    info().forEach(el=>el.textContent='📍 Cliquez sur la carte pour générer un parcours');
     if(hint) hint.style.display='block';
     pickingDepart=true;
     map.getContainer().style.cursor='crosshair';
+    // Sur mobile : fermer le drawer pour laisser la carte visible
+    closeDrawer();
   } else if(mode==='gps'){
     info().forEach(el=>el.textContent='📡 Localisation…');
     pickingDepart=false;
@@ -1037,14 +1080,17 @@ map.on('click',e=>{
   if(departMarker) map.removeLayer(departMarker);
   departMarker=L.circleMarker(departCoords,{radius:9,color:'#4ade80',weight:3,fillColor:'#4ade80',fillOpacity:.7}).addTo(map);
   document.querySelectorAll('#dep-info').forEach(el=>el.textContent=`📍 ${departCoords[0].toFixed(5)}, ${departCoords[1].toFixed(5)}`);
-  const hint=document.getElementById('dep-hint');
-  if(hint) hint.style.display='none';
-  map.getContainer().style.cursor='';
-  pickingDepart=false;
+  // Garder le mode picking actif (crosshair) pour pouvoir re-cliquer
+  // et lancer automatiquement la génération du parcours
+  generateRoute();
 });
 
 function generateRoute() {
   clearRoute(); // Effacer l'ancien parcours
+
+  // Masquer le hint de départ
+  const hint=document.getElementById('dep-hint');
+  if(hint) hint.style.display='none';
 
   const btn=document.getElementById('gen-btn');
   const res=document.getElementById('gen-result');
