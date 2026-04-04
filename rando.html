@@ -342,7 +342,7 @@ function htmlReseau() {
   <div class="sec-lbl">Générer un parcours</div>
   <div class="gen-card">
     <div class="gen-hdr"><div class="gen-badge">⚙ Algo</div><div class="gen-title">Parcours sur mesure</div></div>
-    <div style="background:rgba(234,88,12,.1);border:1px solid rgba(234,88,12,.25);border-radius:6px;padding:5px 9px;font-size:.65rem;color:#b54300;line-height:1.4">🧪 <strong>Moteur expérimental</strong> — en cours de développement. Les tracés peuvent être approximatifs.</div>
+    <div style="background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.25);border-radius:6px;padding:5px 9px;font-size:.65rem;color:#15803d;line-height:1.4">🧭 <strong>Moteur v4</strong> — routage strict sur le réseau. Le tracé suit exclusivement les voies et chemins répertoriés.</div>
     <div><div class="gen-lbl">Mode</div>
     <div class="gen-modes">
       <div class="gen-mode sel" data-mode="pied"   onclick="selMode(this)"><span class="em">🥾</span>À pied</div>
@@ -499,6 +499,7 @@ async function loadCheminsRoutes() {
         geom.coordinates.forEach(l => addLine(l.map(c => [c[1], c[0]])));
     });
     crReady = true;
+    _graphCache = null; // Invalider le cache graphe
     console.log(`✅ chemins-routes: ${geoData.cheminsRoutes.length} segments chargés`);
   } catch(e) {
     console.warn('⚠️ chemins-routes.geojson indisponible, fallback routes/terres:', e.message);
@@ -567,6 +568,7 @@ async function loadReseau(isRetry=false) {
       Object.entries(netGroups).forEach(([k,g])=>{if(netVisible[k])g.addTo(map);});
     }
     netReady=true;
+    _graphCache = null; // Invalider le cache graphe
     setSt('ok',`✓ ${total} tronçons chargés`);
     setCards(true);
   } catch(e) {
@@ -613,10 +615,11 @@ function segLen(seg){
 }
 
 // ══════════════════════════════════════════════════════════
-// ROUTEUR v3.6.3 — boucle réaliste sur réseau GeoJSON
-// Principe : snap sur le réseau le plus proche, exploration
-// souple pour former une boucle cohérente avec la distance cible.
-// Tolérances larges pour garantir un résultat exploitable.
+// ROUTEUR v4.0 — GRAPHE STRICT sur réseau GeoJSON
+// Principe : on construit un vrai graphe topologique à partir
+// des segments GeoJSON. Les nœuds = extrémités + intersections.
+// Les arêtes = sous-segments du réseau. AUCUN tracé en dehors
+// du réseau n'est possible. Dijkstra pour le retour.
 // ══════════════════════════════════════════════════════════
 
 function makeRng(seed) {
@@ -625,169 +628,345 @@ function makeRng(seed) {
     s = (s ^ (s << 13)) >>> 0;
     s = (s ^ (s >> 17)) >>> 0;
     s = (s ^ (s << 5))  >>> 0;
-    return s / 0xFFFFFFFF;
+    return (s >>> 0) / 0xFFFFFFFF;
   };
 }
 
-// Snap : point le plus proche sur tout le réseau
-function snapToNetwork(coord, segs) {
-  let bestD = Infinity, bestPt = coord;
-  segs.forEach(seg => {
-    seg.forEach(p => {
-      const d = dist(coord, p);
-      if (d < bestD) { bestD = d; bestPt = p; }
-    });
-  });
-  return { d: bestD, pt: bestPt };
+// ── Graphe topologique ──
+// Clé d'un nœud = "lat,lng" arrondi à ~1m de précision
+function nodeKey(p) {
+  return p[0].toFixed(5) + ',' + p[1].toFixed(5);
 }
 
-function buildRealRoute(targetM, pref, seed) {
-  const rng = makeRng(seed);
+let _graphCache = null;
+let _graphCacheKey = '';
 
-  // ── 1. Source des segments selon préférence
-  // chemins-routes.geojson = réseau de connexité.
-  // Mais pour _type, on cherche dans routes/terres (calques affichés).
-  // Un segment de chemins-routes est 'route' si son point médian est
-  // proche d'un segment de geoData.route, sinon 'chemin'.
-  const crSegs = crReady && geoData.cheminsRoutes.length > 0
-    ? geoData.cheminsRoutes
-    : null;
+function buildGraph() {
+  // Détermine quels segments utiliser
+  const crSegs = crReady && geoData.cheminsRoutes && geoData.cheminsRoutes.length > 0
+    ? geoData.cheminsRoutes : null;
 
-  // Fonction : retrouver le type réel d'un segment CR depuis les calques route/terre
-  function getRealType(seg) {
-    if (seg._type) return seg._type; // déjà tagué depuis loadCheminsRoutes
-    // Chercher le point médian dans geoData.route
-    const mid = seg[Math.floor(seg.length / 2)];
-    const threshold = 15; // 15m = même tracé
-    for (const rs of geoData.route) {
-      for (const p of rs) {
-        if (dist(mid, p) < threshold) return 'route';
-      }
-    }
-    return 'chemin';
-  }
-
-  // Pool de base : uniquement les segments des calques officiels
-  // (pas de tracés inventés entre segments)
   let basePool;
   if (crSegs) {
-    // Retagger depuis les calques si nécessaire
-    crSegs.forEach(s => { if (!s._realType) s._realType = getRealType(s); });
-    basePool = crSegs.filter(s => s._len >= 10);
+    basePool = crSegs.filter(s => s._len >= 5);
   } else {
     basePool = [
       ...geoData.terre.map(s => { s._realType = 'chemin'; return s; }),
       ...geoData.route.map(s => { s._realType = 'route'; return s; }),
       ...geoData.afr.map(s => { s._realType = 'chemin'; return s; }),
-    ].filter(s => s._len >= 10);
+    ].filter(s => s._len >= 5);
   }
-  if (basePool.length < 2) return null;
 
-  // ── 2. Snap du départ sur le réseau (point le plus proche réel)
-  const snap = snapToNetwork(departCoords, basePool);
+  // Identifier le type réel via les calques route/terre
+  function getRealType(seg) {
+    if (seg._realType) return seg._realType;
+    if (seg._type) { seg._realType = seg._type; return seg._type; }
+    const mid = seg[Math.floor(seg.length / 2)];
+    for (const rs of geoData.route) {
+      for (const p of rs) {
+        if (dist(mid, p) < 15) { seg._realType = 'route'; return 'route'; }
+      }
+    }
+    seg._realType = 'chemin';
+    return 'chemin';
+  }
+  basePool.forEach(s => getRealType(s));
+
+  // Caching : ne reconstruire que si le pool a changé
+  const cacheKey = basePool.length + '_' + (basePool[0]?._key||'') + '_' + (basePool[basePool.length-1]?._key||'');
+  if (_graphCache && _graphCacheKey === cacheKey) return _graphCache;
+
+  // Phase 1 : Collecter tous les nœuds uniques (extrémités de tous les segments)
+  // et fusionner les nœuds proches (< 8m = même intersection)
+  const MERGE_DIST = 8; // mètres
+  const rawNodes = []; // [{lat,lng, key}]
+  const keyMap = new Map(); // clé brute → clé canonique
+
+  function getCanonical(p) {
+    const k = nodeKey(p);
+    if (keyMap.has(k)) return keyMap.get(k);
+    // Chercher un nœud existant à moins de MERGE_DIST
+    for (const n of rawNodes) {
+      if (dist(p, [n.lat, n.lng]) < MERGE_DIST) {
+        keyMap.set(k, n.key);
+        return n.key;
+      }
+    }
+    // Nouveau nœud
+    rawNodes.push({ lat: p[0], lng: p[1], key: k });
+    keyMap.set(k, k);
+    return k;
+  }
+
+  // Phase 2 : Construire les arêtes
+  // Chaque segment GeoJSON → une arête entre ses extrémités
+  // avec la géométrie complète stockée pour le tracé
+  const adj = new Map(); // nodeKey → [{to: nodeKey, dist: m, type: 'route'|'chemin', pts: [...], segKey: string}]
+
+  function addEdge(fromKey, toKey, d, type, pts, segKey) {
+    if (!adj.has(fromKey)) adj.set(fromKey, []);
+    if (!adj.has(toKey)) adj.set(toKey, []);
+    adj.get(fromKey).push({ to: toKey, dist: d, type, pts, segKey });
+    adj.get(toKey).push({ to: fromKey, dist: d, type, pts: [...pts].reverse(), segKey });
+  }
+
+  // Pour chaque segment, on va aussi créer des nœuds intermédiaires
+  // là où un autre segment passe à moins de MERGE_DIST (intersections)
+  // → Cela découpe les segments en sous-arêtes
+
+  // D'abord collecter tous les points de tous les segments
+  const allSegPts = []; // {segIdx, ptIdx, coord}
+  basePool.forEach((seg, si) => {
+    seg.forEach((p, pi) => {
+      allSegPts.push({ si, pi, coord: p });
+    });
+  });
+
+  // Pour chaque segment, identifier les points d'intersection
+  // (= points d'un autre segment qui sont très proches d'un de nos points)
+  basePool.forEach((seg, si) => {
+    // Tous les indices dans CE segment qui sont des nœuds (extrémités + intersections)
+    const nodeIndices = new Set([0, seg.length - 1]);
+
+    // Chercher les intersections avec d'autres segments
+    for (let pi = 1; pi < seg.length - 1; pi++) {
+      for (let sj = 0; sj < basePool.length; sj++) {
+        if (sj === si) continue;
+        const other = basePool[sj];
+        // Vérifier seulement les extrémités de l'autre segment
+        if (dist(seg[pi], other[0]) < MERGE_DIST || dist(seg[pi], other[other.length - 1]) < MERGE_DIST) {
+          nodeIndices.add(pi);
+          break;
+        }
+        // Et les points intermédiaires de l'autre segment
+        for (let pj = 1; pj < other.length - 1; pj++) {
+          if (dist(seg[pi], other[pj]) < MERGE_DIST) {
+            nodeIndices.add(pi);
+            break;
+          }
+        }
+        if (nodeIndices.has(pi)) break;
+      }
+    }
+
+    // Découper le segment en sous-arêtes entre nœuds consécutifs
+    const sorted = [...nodeIndices].sort((a, b) => a - b);
+    const type = seg._realType || 'chemin';
+    const segKey = seg._key || ('seg_' + si);
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const from = sorted[i];
+      const to = sorted[i + 1];
+      const subPts = seg.slice(from, to + 1);
+      if (subPts.length < 2) continue;
+      let d = 0;
+      for (let j = 1; j < subPts.length; j++) d += dist(subPts[j - 1], subPts[j]);
+      if (d < 1) continue; // ignorer les micro-arêtes
+
+      const fromKey = getCanonical(subPts[0]);
+      const toKey = getCanonical(subPts[subPts.length - 1]);
+      if (fromKey === toKey) continue;
+
+      addEdge(fromKey, toKey, d, type, subPts, segKey + '_' + from + '_' + to);
+    }
+  });
+
+  // Nœuds : map nodeKey → [lat, lng]
+  const nodes = new Map();
+  rawNodes.forEach(n => nodes.set(n.key, [n.lat, n.lng]));
+
+  const graph = { nodes, adj, basePool };
+  _graphCache = graph;
+  _graphCacheKey = cacheKey;
+  console.log(`📊 Graphe: ${nodes.size} nœuds, ${[...adj.values()].reduce((s,a)=>s+a.length,0)/2|0} arêtes`);
+  return graph;
+}
+
+// Snap un point sur le nœud du graphe le plus proche
+function snapToGraph(coord, graph) {
+  let bestD = Infinity, bestKey = null;
+  graph.nodes.forEach((pt, key) => {
+    const d = dist(coord, pt);
+    if (d < bestD) { bestD = d; bestKey = key; }
+  });
+  return { d: bestD, key: bestKey, pt: graph.nodes.get(bestKey) };
+}
+
+// Dijkstra : plus court chemin entre deux nœuds
+function dijkstra(graph, fromKey, toKey, usedEdges, pref, maxDist) {
+  const dists = new Map(); // nodeKey → best dist
+  const prev = new Map();  // nodeKey → {fromKey, edge}
+  dists.set(fromKey, 0);
+
+  // Simple priority queue (suffisant pour nos petits graphes)
+  const queue = [{ key: fromKey, d: 0 }];
+  const visited = new Set();
+
+  while (queue.length > 0) {
+    // Extraire le min
+    let minIdx = 0;
+    for (let i = 1; i < queue.length; i++) {
+      if (queue[i].d < queue[minIdx].d) minIdx = i;
+    }
+    const { key: cur, d: curD } = queue.splice(minIdx, 1)[0];
+
+    if (visited.has(cur)) continue;
+    visited.add(cur);
+
+    if (cur === toKey) break;
+    if (maxDist && curD > maxDist) continue;
+
+    const edges = graph.adj.get(cur) || [];
+    for (const e of edges) {
+      // Pénaliser légèrement les arêtes déjà utilisées pour varier
+      const penalty = usedEdges && usedEdges.has(e.segKey) ? 3.0 : 1.0;
+      const nd = curD + e.dist * penalty;
+      if (!dists.has(e.to) || nd < dists.get(e.to)) {
+        dists.set(e.to, nd);
+        prev.set(e.to, { from: cur, edge: e });
+        queue.push({ key: e.to, d: nd });
+      }
+    }
+  }
+
+  if (!prev.has(toKey) && fromKey !== toKey) return null;
+
+  // Reconstruire le chemin
+  const path = [];
+  let cur = toKey;
+  let totalDist = 0;
+  while (prev.has(cur)) {
+    const { from, edge } = prev.get(cur);
+    path.unshift({ edge, from });
+    totalDist += edge.dist;
+    cur = from;
+  }
+  return { path, totalDist };
+}
+
+// ── Générateur de boucle via le graphe ──
+function buildRealRoute(targetM, pref, seed) {
+  const rng = makeRng(seed);
+  const graph = buildGraph();
+  if (!graph || graph.nodes.size < 3) return null;
+
+  // Snap du départ
+  const snap = snapToGraph(departCoords, graph);
+  if (!snap.key) return null;
+  const startKey = snap.key;
   const startPt = snap.pt;
 
-  // ── 3. Paramètres adaptatifs
-  // JOIN_MAX : seuil de connexion entre deux segments adjacents
-  // Valeur intentionnellement conservatrice pour forcer les tracés
-  const JOIN_MAX = Math.min(1500, Math.max(300, targetM * 0.10));
-
-  // ── 4. Boucle
-  const usedKeys = new Set();
-  const routePts = [startPt];
-  let totalDist = 0;
-  let current = startPt;
-
-  // Poids selon préférence utilisateur
-  function segWeight(seg) {
-    const t = seg._realType || 'chemin';
-    if (pref === 'routes') return t === 'route' ? 5 : (genMode === 'velo' ? 0.1 : 0.4);
+  // Poids d'une arête selon préférence
+  function edgeWeight(e) {
+    const t = e.type || 'chemin';
+    if (pref === 'routes') return t === 'route' ? 5 : 0.4;
     if (pref === 'chemins') return t === 'chemin' ? 5 : 0.4;
-    // Mixte : légère préférence chemins pour pied, routes pour vélo
     if (genMode === 'velo') return t === 'route' ? 2 : 1;
     return t === 'chemin' ? 1.5 : 1;
   }
 
-  // Candidats depuis pos, triés selon l'objectif
-  function getCands(pos, wantAway, joinMax) {
-    const out = [];
-    basePool.forEach(seg => {
-      if (usedKeys.has(seg._key)) return;
-      const d0 = dist(pos, seg[0]);
-      const d1 = dist(pos, seg[seg.length - 1]);
-      const fwd  = d0 <= d1;
-      const entD = fwd ? d0 : d1;
-      if (entD > joinMax) return;
-      const exitPt = fwd ? seg[seg.length - 1] : seg[0];
-      out.push({ seg, fwd, entD, exitPt,
-        exitDistHome: dist(exitPt, startPt),
-        w: segWeight(seg) });
-    });
-    if (wantAway) out.sort((a,b) => b.exitDistHome - a.exitDistHome || a.entD - b.entD);
-    else          out.sort((a,b) => a.exitDistHome - b.exitDistHome || a.entD - b.entD);
-    return out;
-  }
+  // Explorer : marche aléatoire pondérée sur le graphe
+  const usedEdges = new Set();
+  const visitedNodes = [startKey];
+  const routeSegments = []; // [{pts, dist, type}]
+  let totalDist = 0;
+  let curKey = startKey;
 
-  // Avec fallback progressif si réseau fragmenté
-  function getCandsFB(pos, wantAway) {
-    for (const mult of [1, 2, 4, 8]) {
-      const c = getCands(pos, wantAway, JOIN_MAX * mult);
-      if (c.length) return c;
+  // Phase A : s'éloigner ~45% de la distance cible
+  const phaseATarget = targetM * 0.45;
+  for (let i = 0; i < 120 && totalDist < phaseATarget; i++) {
+    const edges = (graph.adj.get(curKey) || []).filter(e => !usedEdges.has(e.segKey));
+    if (edges.length === 0) {
+      // Deadlock : essayer les arêtes déjà utilisées pour sortir
+      const allEdges = graph.adj.get(curKey) || [];
+      if (allEdges.length === 0) break;
+      // Prendre une arête déjà utilisée au hasard pour se débloquer
+      const e = allEdges[Math.floor(rng() * allEdges.length)];
+      routeSegments.push({ pts: e.pts, dist: e.dist, type: e.type });
+      totalDist += e.dist;
+      curKey = e.to;
+      visitedNodes.push(curKey);
+      continue;
     }
-    return [];
+
+    // Pondérer : préférence de voie + s'éloigner du départ
+    const scored = edges.map(e => {
+      const ePt = graph.nodes.get(e.to);
+      const dHome = ePt ? dist(ePt, startPt) : 0;
+      // Favoriser les arêtes qui éloignent du départ en phase A
+      const dirBonus = Math.max(0.5, dHome / Math.max(1, targetM * 0.2));
+      // Limiter les très longs segments qui dépasseraient la cible
+      const lenOk = (totalDist + e.dist <= targetM * 1.3) ? 1 : 0.1;
+      return { e, score: edgeWeight(e) * dirBonus * lenOk * (0.5 + rng() * 0.8) };
+    });
+    scored.sort((a, b) => b.score - a.score);
+
+    const chosen = scored[0].e;
+    usedEdges.add(chosen.segKey);
+    routeSegments.push({ pts: chosen.pts, dist: chosen.dist, type: chosen.type });
+    totalDist += chosen.dist;
+    curKey = chosen.to;
+    visitedNodes.push(curKey);
   }
 
-  // Tirage pondéré parmi les top-N candidats
-  function pick(cands, n) {
-    const pool = cands.slice(0, Math.min(n, cands.length));
-    if (pool.length === 1) return pool[0];
-    const totalW = pool.reduce((s,c) => s + c.w, 0);
-    let r = rng() * totalW;
-    for (const c of pool) { r -= c.w; if (r <= 0) return c; }
-    return pool[0];
+  // Phase B : continuer en favorisant les arêtes qui ramènent vers le départ
+  // mais en ajoutant de la distance si on n'a pas assez
+  const phaseBTarget = targetM * 0.85;
+  for (let i = 0; i < 120 && totalDist < phaseBTarget; i++) {
+    const dHome = dist(graph.nodes.get(curKey), startPt);
+
+    // Si on est tout près du départ et qu'on n'a pas assez de distance → s'éloigner
+    const wantAway = dHome < targetM * 0.05 && totalDist < targetM * 0.7;
+
+    const edges = (graph.adj.get(curKey) || []).filter(e => !usedEdges.has(e.segKey));
+    if (edges.length === 0) break;
+
+    const scored = edges.map(e => {
+      const ePt = graph.nodes.get(e.to);
+      const eDHome = ePt ? dist(ePt, startPt) : Infinity;
+      // En phase B : favoriser le retour sauf si wantAway
+      const dirScore = wantAway
+        ? Math.max(0.3, eDHome / Math.max(1, targetM * 0.2))
+        : Math.max(0.3, 1 / (1 + eDHome / 500));
+      const lenOk = (totalDist + e.dist <= targetM * 1.5) ? 1 : 0.05;
+      return { e, score: edgeWeight(e) * dirScore * lenOk * (0.5 + rng() * 0.8) };
+    });
+    scored.sort((a, b) => b.score - a.score);
+
+    const chosen = scored[0].e;
+    usedEdges.add(chosen.segKey);
+    routeSegments.push({ pts: chosen.pts, dist: chosen.dist, type: chosen.type });
+    totalDist += chosen.dist;
+    curKey = chosen.to;
+    visitedNodes.push(curKey);
   }
 
-  function addSeg(c) {
-    const pts = c.fwd ? c.seg : [...c.seg].reverse();
-    // Jonction : tracer en ligne droite UNIQUEMENT si très proche (≤ 8m)
-    // Au-delà on trace quand même mais on compte la distance de jonction
-    // PAS de points fantômes rajoutés si entD > JOIN_MAX
-    if (c.entD > 2) { routePts.push(pts[0]); totalDist += c.entD; }
-    pts.forEach(p => routePts.push(p));
-    totalDist += c.seg._len;
-    usedKeys.add(c.seg._key);
-    return pts[pts.length - 1];
+  // Phase C : retour au départ via Dijkstra (chemin le plus court sur le graphe)
+  if (curKey !== startKey) {
+    const retour = dijkstra(graph, curKey, startKey, usedEdges, pref, targetM * 2);
+    if (retour && retour.path.length > 0) {
+      for (const step of retour.path) {
+        routeSegments.push({ pts: step.edge.pts, dist: step.edge.dist, type: step.edge.type });
+        totalDist += step.edge.dist;
+      }
+    } else {
+      // Impossible de revenir via le graphe → échec
+      return null;
+    }
   }
 
-  // ── Phase A : s'éloigner ~48% de la cible
-  const phaseA = targetM * 0.48;
-  for (let i = 0; i < 80 && totalDist < phaseA; i++) {
-    const cands = getCandsFB(current, true);
-    if (!cands.length) break;
-    const ok = cands.filter(c => totalDist + c.seg._len <= targetM * 1.2);
-    current = addSeg(pick(ok.length ? ok : cands, 5));
+  // Assembler les coordonnées du parcours
+  const routePts = [];
+  for (let i = 0; i < routeSegments.length; i++) {
+    const seg = routeSegments[i];
+    for (let j = (i === 0 ? 0 : 1); j < seg.pts.length; j++) {
+      routePts.push(seg.pts[j]);
+    }
   }
 
-  // ── Phase B : revenir vers le départ
-  const maxTotal = targetM * 2.0;
-  for (let i = 0; i < 100 && totalDist < maxTotal; i++) {
-    const dHome = dist(current, startPt);
-    if (totalDist >= targetM * 0.65 && dHome <= JOIN_MAX * 3) break;
-    // Si on est proche du départ mais trop court → s'éloigner encore
-    const away = dHome < targetM * 0.08;
-    const cands = getCandsFB(current, away);
-    if (!cands.length) break;
-    current = addSeg(pick(cands, 3));
-  }
-
-  // Fermer la boucle — connexion directe au startPt
-  const closingD = dist(current, startPt);
-  routePts.push(startPt);
-  totalDist += closingD;
-
-  // Validation : 35% à 250% de la cible
+  // Validation : 30% à 300% de la cible (souple pour les petits réseaux)
   const ratio = totalDist / targetM;
-  if (ratio < 0.35 || ratio > 2.5 || routePts.length < 4) return null;
+  if (ratio < 0.30 || ratio > 3.0 || routePts.length < 4) return null;
 
   return { coords: routePts, distM: totalDist };
 }
