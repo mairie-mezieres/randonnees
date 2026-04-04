@@ -290,6 +290,8 @@ let genCoords     = null;
 let genGpsWatch   = null;
 let genUserMk     = null;
 let genMode       = 'pied';
+let genPref       = 'chemins'; // 'chemins' | 'mixte' | 'routes'
+let genDist       = '8';       // valeur du select distance
 let departMode    = 'parking';
 let departCoords  = [47.818096, 1.801526];
 let departMarker  = null;
@@ -349,21 +351,42 @@ const POIS = [
 // CONTENU DES ONGLETS (HTML partagé desktop/mobile)
 // ══════════════════════════════════════════════════════════
 function htmlReseau() {
+  const dists = [
+    {v:'3',  pied:'45 min', velo:'12 min', label:'~3 km'},
+    {v:'5',  pied:'1h15',   velo:'20 min', label:'~5 km'},
+    {v:'8',  pied:'2h',     velo:'32 min', label:'~8 km'},
+    {v:'12', pied:'3h',     velo:'48 min', label:'~12 km'},
+    {v:'15', pied:'3h45',   velo:'1h',     label:'~15 km'},
+    {v:'20', pied:'5h',     velo:'1h20',   label:'~20 km'},
+  ];
+  const selOpt = dists.map(d =>
+    `<option value="${d.v}" data-pied="${d.pied}" data-velo="${d.velo}"${d.v===genDist?' selected':''}>${d.label}</option>`
+  ).join('');
+  const curD = dists.find(d=>d.v===genDist) || dists[2];
+  const dureeLabel = genMode==='velo' ? curD.velo : curD.pied;
+
+  const mSel = m => m===genMode ? 'gen-mode sel' : 'gen-mode';
+  const pSel = p => p===genPref ? 'gen-mode sel' : 'gen-mode';
+  const dSel = d => d===departMode ? 'dep-btn active' : 'dep-btn';
+  const depLabel = departMode==='parking' ? '🅿️ Parking des randonneurs'
+    : departMode==='gps' ? '📍 Position GPS'
+    : '📍 Cliquez sur la carte';
+
   return `<div class="net-wrap">
   <div class="sec-lbl">Voies &amp; chemins</div>
   <div class="net-st" id="net-status"><span class="spin"></span> Chargement…</div>
   <div id="lyr-cards" style="display:none;flex-direction:column;gap:6px">
-    <div class="lyr-card" id="lc-route" onclick="toggleLayer('route')">
+    <div class="lyr-card${netVisible.route?'':' off'}" id="lc-route" onclick="toggleLayer('route')">
       <div class="lyr-dot" style="background:#60a5fa"></div>
       <div style="flex:1"><div class="lyr-name">Routes &amp; rues</div><div class="lyr-desc">Revêtement dur · incl. inter-communes</div></div>
       <div class="lyr-sw"></div>
     </div>
-    <div class="lyr-card" id="lc-terre" onclick="toggleLayer('terre')">
+    <div class="lyr-card${netVisible.terre?'':' off'}" id="lc-terre" onclick="toggleLayer('terre')">
       <div class="lyr-dot" style="background:#16a34a"></div>
       <div style="flex:1"><div class="lyr-name">Chemins de terre</div><div class="lyr-desc">Communaux · Piétons &amp; vélos</div></div>
       <div class="lyr-sw"></div>
     </div>
-    <div class="lyr-card" id="lc-afr" onclick="toggleLayer('afr')">
+    <div class="lyr-card${netVisible.afr?'':' off'}" id="lc-afr" onclick="toggleLayer('afr')">
       <div class="lyr-dot" style="background:#fb923c"></div>
       <div style="flex:1"><div class="lyr-name">Chemins AFR</div><div class="lyr-desc">Agricoles · Vérifier accès</div></div>
       <div class="lyr-sw"></div>
@@ -376,32 +399,27 @@ function htmlReseau() {
     <div style="background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.25);border-radius:6px;padding:5px 9px;font-size:.65rem;color:#15803d;line-height:1.4">🧭 <strong>Moteur v4</strong> — routage strict sur le réseau. Le tracé suit exclusivement les voies et chemins répertoriés.</div>
     <div><div class="gen-lbl">Mode</div>
     <div class="gen-modes">
-      <div class="gen-mode sel" data-mode="pied"   onclick="selMode(this)"><span class="em">🥾</span>À pied</div>
-      <div class="gen-mode"     data-mode="velo"   onclick="selMode(this)"><span class="em">🚴</span>Vélo</div>
+      <div class="${mSel('pied')}" data-mode="pied"   onclick="selMode(this)"><span class="em">🥾</span>À pied</div>
+      <div class="${mSel('velo')}" data-mode="velo"   onclick="selMode(this)"><span class="em">🚴</span>Vélo</div>
     </div></div>
     <div><div class="gen-lbl">Préférence de voies</div>
     <div class="gen-modes">
-      <div class="gen-mode sel" data-pref="chemins" onclick="selPref(this)"><span class="em">🌿</span>Chemins</div>
-      <div class="gen-mode"     data-pref="routes"  onclick="selPref(this)"><span class="em">🛣️</span>Routes</div>
-      <div class="gen-mode"     data-pref="mixte"   onclick="selPref(this)"><span class="em">🗺️</span>Mixte</div>
+      <div class="${pSel('chemins')}" data-pref="chemins" onclick="selPref(this)"><span class="em">🌿</span>Chemins</div>
+      <div class="${pSel('routes')}"  data-pref="routes"  onclick="selPref(this)"><span class="em">🛣️</span>Routes</div>
+      <div class="${pSel('mixte')}"   data-pref="mixte"   onclick="selPref(this)"><span class="em">🗺️</span>Mixte</div>
     </div></div>
     <div><div class="gen-lbl">Distance souhaitée</div>
     <select class="gen-sel" id="gen-dist" onchange="updateDuree()">
-      <option value="3"  data-pied="45 min" data-velo="12 min">~3 km</option>
-      <option value="5"  data-pied="1h15"  data-velo="20 min">~5 km</option>
-      <option value="8"  data-pied="2h"    data-velo="32 min" selected>~8 km</option>
-      <option value="12" data-pied="3h"    data-velo="48 min">~12 km</option>
-      <option value="15" data-pied="3h45"  data-velo="1h">~15 km</option>
-      <option value="20" data-pied="5h"    data-velo="1h20">~20 km</option>
+      ${selOpt}
     </select>
-    <div style="font-size:.67rem;color:var(--moss);margin-top:2px" id="dist-duree">· 2h</div></div>
+    <div style="font-size:.67rem;color:var(--moss);margin-top:2px" id="dist-duree">· ${dureeLabel}</div></div>
     <div><div class="gen-lbl">Point de départ</div>
     <div class="dep-btns">
-      <button class="dep-btn active" id="dep-parking" onclick="setDepart('parking')">🅿️ Parking</button>
-      <button class="dep-btn"        id="dep-carte"   onclick="setDepart('carte')">🖱️ Carte</button>
-      <button class="dep-btn"        id="dep-gps"     onclick="setDepart('gps')">📍 GPS</button>
+      <button class="${dSel('parking')}" id="dep-parking" onclick="setDepart('parking')">🅿️ Parking</button>
+      <button class="${dSel('carte')}"   id="dep-carte"   onclick="setDepart('carte')">🖱️ Carte</button>
+      <button class="${dSel('gps')}"     id="dep-gps"     onclick="setDepart('gps')">📍 GPS</button>
     </div>
-    <div class="dep-info" id="dep-info">🅿️ Parking des randonneurs</div></div>
+    <div class="dep-info" id="dep-info">${depLabel}</div></div>
     <button class="gen-btn" id="gen-btn" onclick="generateRoute()">⚙ Calculer le parcours</button>
     <div class="gen-result" id="gen-result">
       <div class="gen-rtitle" id="gen-rtitle">Parcours calculé</div>
@@ -1067,11 +1085,18 @@ function buildRealRoute(targetM, pref, seed) {
     for (let j = (i === 0 ? 0 : 1); j < seg.pts.length; j++) routePts.push(seg.pts[j]);
   }
 
-  // Validation stricte : ±25% max (sera filtré par le sélecteur best-of-N)
+  // Validation stricte : ±50% max (sera filtré par le sélecteur best-of-N à ±1km)
   const ratio = totalDist / targetM;
   if (ratio < 0.50 || ratio > 1.50 || routePts.length < 4) return null;
 
-  return { coords: routePts, distM: totalDist };
+  // Calculer les stats réelles de type de voie
+  let distChemin = 0, distRoute = 0;
+  for (const seg of routeSegments) {
+    if (seg.type === 'route') distRoute += seg.dist;
+    else distChemin += seg.dist;
+  }
+
+  return { coords: routePts, distM: totalDist, distChemin, distRoute };
 }
 
 function selMode(el) {
@@ -1082,7 +1107,6 @@ function selMode(el) {
   updateDuree();
 }
 
-let genPref='chemins'; // 'chemins' | 'mixte' | 'routes'
 function selPref(el) {
   el.closest('.gen-modes').querySelectorAll('.gen-mode').forEach(e=>e.classList.remove('sel'));
   el.classList.add('sel');
@@ -1091,10 +1115,10 @@ function selPref(el) {
 
 function updateDuree() {
   const sel=document.getElementById('gen-dist'); if(!sel) return;
+  genDist = sel.value; // Sauvegarder la distance choisie
   const opt=sel.options[sel.selectedIndex]; if(!opt) return;
   const attr=genMode==='velo'?'data-velo':'data-pied';
   const duree=opt.getAttribute(attr)||'';
-  // Mettre à jour le label affiché
   const lbl=document.getElementById('dist-duree');
   if(lbl) lbl.textContent=duree?`· ${duree}`:'';
 }
@@ -1165,7 +1189,7 @@ function generateRoute() {
     return;
   }
 
-  const targetKm=parseFloat(document.getElementById('gen-dist')?.value||'8');
+  const targetKm=parseFloat(genDist||'8');
   const targetM=targetKm*1000;
 
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Calcul…';}
@@ -1208,18 +1232,11 @@ function generateRoute() {
       Object.values(netGroups).forEach(g=>map.removeLayer(g));
       ['route','terre','afr'].forEach(k=>document.getElementById('mt-'+k)?.classList.add('off'));
 
-      // Calculer proportion route/chemin
-      let pctChemin=50, pctRoute=50, networkTxt='Tracé sur les voies réelles.';
-      if (crReady && geoData.cheminsRoutes.length > 0) {
-        const usedSegs = geoData.cheminsRoutes.filter(s => {
-          const mid = s[Math.floor(s.length/2)];
-          return best.coords.some(p => dist(p, mid) < 80);
-        });
-        const totalLen = usedSegs.reduce((a,s) => a + s._len, 0);
-        const routeLen = usedSegs.filter(s => s._type==='route').reduce((a,s) => a + s._len, 0);
-        pctRoute = totalLen > 0 ? Math.round(routeLen / totalLen * 100) : 0;
-        pctChemin = 100 - pctRoute;
-      }
+      // Calculer proportion route/chemin depuis les stats réelles du routeur
+      const totalVoie = best.distChemin + best.distRoute;
+      const pctChemin = totalVoie > 0 ? Math.round(best.distChemin / totalVoie * 100) : 50;
+      const pctRoute = 100 - pctChemin;
+      let networkTxt;
       if (pctChemin >= 70) networkTxt = `🌿 ${pctChemin}% chemins de terre · ${pctRoute}% routes`;
       else if (pctRoute >= 70) networkTxt = `🛣️ ${pctRoute}% routes · ${pctChemin}% chemins`;
       else networkTxt = `🗺️ Mixte : ${pctChemin}% chemins · ${pctRoute}% routes`;
