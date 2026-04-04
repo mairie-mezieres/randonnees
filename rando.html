@@ -188,6 +188,28 @@ html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--fo
   .map-togs{top:auto;bottom:76px;right:10px}
   .leg{display:none}
 }
+
+/* ── PANNEAU FLOTTANT (résultat parcours/circuit sur mobile) ── */
+.float-panel{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:600;
+  background:var(--cream);border-radius:16px 16px 0 0;
+  box-shadow:0 -4px 24px rgba(0,0,0,.25);
+  padding:14px 16px 18px;max-height:45vh;overflow-y:auto;
+  animation:slideUp .3s ease-out
+}
+.float-panel.show{display:block}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.fp-close{position:absolute;top:8px;right:12px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--moss);padding:4px 8px}
+.fp-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--forest);margin-bottom:6px;padding-right:30px}
+.fp-stats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.fp-stat{background:var(--parch);padding:4px 10px;border-radius:8px;font-size:.75rem;color:var(--forest);font-weight:600}
+.fp-desc{font-size:.74rem;color:#555;line-height:1.5;margin-bottom:10px}
+.fp-btns{display:flex;gap:6px;flex-wrap:wrap}
+.fp-btn{flex:1;min-width:0;padding:10px 8px;border:none;border-radius:8px;font-family:inherit;font-size:.73rem;font-weight:700;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px}
+.fp-btn.gpx{background:rgba(30,58,30,.12);color:var(--forest)}
+.fp-btn.gps{background:rgba(22,163,74,.15);color:#15803d}
+.fp-btn.close-btn{background:rgba(0,0,0,.08);color:#555}
+.fp-btn.new{background:var(--forest);color:var(--cream)}
 </style>
 </head>
 <body>
@@ -246,6 +268,15 @@ html,body{height:100%;font-family:'Source Sans 3',sans-serif;background:var(--fo
 
   </div>
   <div class="mob-scroll" id="mob-scroll"><!-- contenu injecté dynamiquement --></div>
+</div>
+
+<!-- ═══ PANNEAU FLOTTANT (résultats sur la carte) ═══ -->
+<div class="float-panel" id="float-panel">
+  <button class="fp-close" onclick="closeFloatPanel()">✕</button>
+  <div class="fp-title" id="fp-title"></div>
+  <div class="fp-stats" id="fp-stats"></div>
+  <div class="fp-desc" id="fp-desc"></div>
+  <div class="fp-btns" id="fp-btns"></div>
 </div>
 
 <script>
@@ -518,7 +549,24 @@ const netStyles  = {
   afr:   {color:'#fb923c', weight:5, opacity:.95, dashArray:'14,6'},
 };
 
+let _reseauLoading = false; // Empêche les chargements parallèles
+
 async function loadReseau(isRetry=false) {
+  if (_reseauLoading) return; // Déjà en cours
+  if (netReady && !isRetry) {
+    // Déjà chargé, juste réafficher
+    const setSt = (cls,html) => {
+      document.querySelectorAll('#net-status').forEach(el=>{el.className='net-st '+cls;el.innerHTML=html;});
+    };
+    const setCards = (show) => {
+      document.querySelectorAll('#lyr-cards').forEach(el=>{el.style.display=show?'flex':'none';});
+    };
+    const total = geoData.route.length + geoData.terre.length + geoData.afr.length;
+    setSt('ok',`✓ ${total} tronçons chargés`);
+    setCards(true);
+    return;
+  }
+  _reseauLoading = true;
   const setSt = (cls,html) => {
     document.querySelectorAll('#net-status').forEach(el=>{el.className='net-st '+cls;el.innerHTML=html;});
   };
@@ -549,7 +597,6 @@ async function loadReseau(isRetry=false) {
           const pl=L.polyline(coords,{...netStyles[type]});
           if(name) pl.bindTooltip(name,{sticky:true,className:'chem-tt'});
           netGroups[type].addLayer(pl);
-          // Décorer le tableau coords pour le routeur
           const seg=[...coords];
           seg._key=type+'_'+(++_segCounter);
           let l=0; for(let i=1;i<seg.length;i++) l+=dist(seg[i-1],seg[i]);
@@ -563,12 +610,11 @@ async function loadReseau(isRetry=false) {
     };
     addGeo(routes,'route'); addGeo(terres,'terre'); addGeo(afr,'afr');
 
-    // Afficher sur la carte si onglet réseau actif
     if (currentTab==='reseau') {
       Object.entries(netGroups).forEach(([k,g])=>{if(netVisible[k])g.addTo(map);});
     }
     netReady=true;
-    _graphCache = null; // Invalider le cache graphe
+    _graphCache = null;
     setSt('ok',`✓ ${total} tronçons chargés`);
     setCards(true);
   } catch(e) {
@@ -577,6 +623,8 @@ async function loadReseau(isRetry=false) {
     setCards(true);
     netReady=false;
     if(!isRetry) setTimeout(()=>loadReseau(true), 3000);
+  } finally {
+    _reseauLoading = false;
   }
 }
 
@@ -861,11 +909,11 @@ function buildRealRoute(targetM, pref, seed) {
   const startKey = snap.key;
   const startPt = snap.pt;
 
-  // Poids d'une arête selon préférence — TRÈS contrasté
+  // Poids d'une arête selon préférence — ratio 1000:1
   function edgeWeight(e) {
     const t = e.type || 'chemin';
-    if (pref === 'routes') return t === 'route' ? 10 : 0.05;
-    if (pref === 'chemins') return t === 'chemin' ? 10 : 0.05;
+    if (pref === 'routes') return t === 'route' ? 20 : 0.02;
+    if (pref === 'chemins') return t === 'chemin' ? 20 : 0.02;
     if (genMode === 'velo') return t === 'route' ? 3 : 1;
     return t === 'chemin' ? 2 : 1;
   }
@@ -1086,9 +1134,9 @@ map.on('click',e=>{
 });
 
 function generateRoute() {
-  clearRoute(); // Effacer l'ancien parcours
+  clearRoute();
+  closeFloatPanel();
 
-  // Masquer le hint de départ
   const hint=document.getElementById('dep-hint');
   if(hint) hint.style.display='none';
 
@@ -1098,106 +1146,104 @@ function generateRoute() {
   const rbody=document.getElementById('gen-rbody');
 
   if(!netReady||(geoData.route.length+geoData.terre.length)===0){
-    res.classList.add('show');
-    rtitle.textContent='Réseau indisponible';
-    rbody.innerHTML='Les fichiers GeoJSON ne sont pas chargés.<br>Vérifiez <code>data/routes.geojson</code> et <code>data/terres.geojson</code>';
+    if(res){res.classList.add('show');rtitle.textContent='Réseau indisponible';
+    rbody.innerHTML='Fichiers GeoJSON non chargés.';}
     return;
   }
 
-  const targetKm=parseFloat(document.getElementById('gen-dist').value);
+  const targetKm=parseFloat(document.getElementById('gen-dist')?.value||'8');
   const targetM=targetKm*1000;
 
-  btn.disabled=true;
-  btn.innerHTML='<span class="spin"></span> Calcul…';
-  res.classList.add('show');
-  rtitle.textContent='Calcul en cours…';
-  rbody.innerHTML='<span class="ldots">Recherche sur le réseau</span>';
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Calcul…';}
+  if(res){res.classList.add('show');rtitle.textContent='Calcul en cours…';
+  rbody.innerHTML='<span class="ldots">Recherche sur le réseau</span>';}
 
   setTimeout(()=>{
     try{
-      // Essayer plusieurs fois avec légère randomisation, garder le mieux
       let best=null;
       window._routeSeed = (window._routeSeed||0) + 1;
       const baseSeed = (window._routeSeed||0) * 1000;
-      // 12 essais avec seeds différents → garder le plus proche de la cible
-      for(let i=0;i<12;i++){
+      for(let i=0;i<15;i++){
         const r=buildRealRoute(targetM, genPref, baseSeed+i);
         if(!r||r.coords.length<4) continue;
         if(!best||Math.abs(r.distM-targetM)<Math.abs(best.distM-targetM)) best=r;
-        // Si on a un résultat parfait (±10%), on s'arrête
         if(best && Math.abs(best.distM-targetM)/targetM < 0.10) break;
       }
 
       if(!best||best.coords.length<4){
-        rtitle.textContent='Impossible de calculer';
-        rbody.innerHTML='Réseau insuffisant pour cette distance depuis ce point de départ.<br>Essayez le parking des randonneurs ou une distance différente.';
+        if(rtitle)rtitle.textContent='Impossible de calculer';
+        if(rbody)rbody.innerHTML='Réseau insuffisant pour cette distance.<br>Essayez le parking ou une distance différente.';
         return;
       }
 
       const realKm=(best.distM/1000).toFixed(1);
-      const speeds={pied:4,velo:15,cheval:8};
+      const speeds={pied:4,velo:15};
       const dureeMin=Math.round((best.distM/1000)/(speeds[genMode]||4)*60);
       const h=Math.floor(dureeMin/60),m=dureeMin%60;
       const dureeStr=h>0?`${h}h${m.toString().padStart(2,'0')}`:`${m} min`;
+      const modeLabel={pied:'À pied',velo:'À vélo'}[genMode]||'À pied';
 
-      // Fermer le menu mobile
       closeDrawer();
       genCoords=best.coords;
-      // Couleur foncée et épaisse — bien visible sur le fond de carte
       genLayer=L.polyline(genCoords,{color:'#4c1d95',weight:6,opacity:.95}).addTo(map);
       map.fitBounds(genLayer.getBounds(),{padding:[40,40]});
 
-      // Masquer le réseau une fois le parcours affiché
       Object.values(netGroups).forEach(g=>map.removeLayer(g));
-      Object.values(netGroups).forEach((g,i)=>{
-        const keys=['route','terre','afr'];
-        document.getElementById('mt-'+keys[i])?.classList.add('off');
-      });
+      ['route','terre','afr'].forEach(k=>document.getElementById('mt-'+k)?.classList.add('off'));
 
-      rtitle.textContent=`Boucle de ${realKm} km`;
-      // Calculer la proportion route/chemin si chemins-routes disponible
-      let networkTxt = 'Tracé sur les voies réelles de la commune.';
-      if (crReady && best.coords.length > 0) {
-        // Estimer la proportion route vs chemin dans le parcours généré
-        // en comptant les segments utilisés par type
+      // Calculer proportion route/chemin
+      let pctChemin=50, pctRoute=50, networkTxt='Tracé sur les voies réelles.';
+      if (crReady && geoData.cheminsRoutes.length > 0) {
         const usedSegs = geoData.cheminsRoutes.filter(s => {
-          // Un segment est "utilisé" si au moins un de ses points est proche du tracé
           const mid = s[Math.floor(s.length/2)];
           return best.coords.some(p => dist(p, mid) < 80);
         });
         const totalLen = usedSegs.reduce((a,s) => a + s._len, 0);
         const routeLen = usedSegs.filter(s => s._type==='route').reduce((a,s) => a + s._len, 0);
-        const pctRoute = totalLen > 0 ? Math.round(routeLen / totalLen * 100) : 0;
-        const pctChemin = 100 - pctRoute;
-        if (pctChemin >= 70) networkTxt = `Parcours majoritairement sur chemins de terre (${pctChemin}%) avec quelques tronçons goudronnés.`;
-        else if (pctRoute >= 70) networkTxt = `Parcours majoritairement sur routes (${pctRoute}%) avec quelques chemins.`;
-        else networkTxt = `Parcours mixte : ~${pctChemin}% chemins de terre, ~${pctRoute}% routes goudronnées.`;
+        pctRoute = totalLen > 0 ? Math.round(routeLen / totalLen * 100) : 0;
+        pctChemin = 100 - pctRoute;
       }
-      rbody.innerHTML=`<strong>${{pied:'À pied',velo:'À vélo',cheval:'À cheval'}[genMode]}</strong> · ⏱ ${dureeStr}<br>
-        ${networkTxt}`;
-      document.getElementById('gen-gps-btn').style.display='';
+      if (pctChemin >= 70) networkTxt = `🌿 ${pctChemin}% chemins de terre · ${pctRoute}% routes`;
+      else if (pctRoute >= 70) networkTxt = `🛣️ ${pctRoute}% routes · ${pctChemin}% chemins`;
+      else networkTxt = `🗺️ Mixte : ${pctChemin}% chemins · ${pctRoute}% routes`;
+
+      // Desktop : panneau sidebar
+      if(rtitle)rtitle.textContent=`Boucle de ${realKm} km`;
+      if(rbody)rbody.innerHTML=`<strong>${modeLabel}</strong> · ⏱ ${dureeStr}<br>${networkTxt}`;
+
+      // Mobile : panneau flottant sur la carte
+      document.getElementById('fp-title').textContent = `🥾 Boucle de ${realKm} km`;
+      document.getElementById('fp-stats').innerHTML =
+        `<span class="fp-stat">📏 ${realKm} km</span>
+         <span class="fp-stat">⏱ ${dureeStr}</span>
+         <span class="fp-stat">${modeLabel}</span>`;
+      document.getElementById('fp-desc').textContent = networkTxt;
+      document.getElementById('fp-btns').innerHTML =
+        `<button class="fp-btn gpx" onclick="downloadRouteGPX()">⬇️ GPX</button>
+         <button class="fp-btn gps" onclick="toggleGenGps()">📍 GPS live</button>
+         <button class="fp-btn new" onclick="closeFloatPanel();generateRoute()">🔄 Nouveau</button>
+         <button class="fp-btn close-btn" onclick="clearRoute();closeFloatPanel()">✕ Effacer</button>`;
+      document.getElementById('float-panel').classList.add('show');
 
     }catch(e){
-      rtitle.textContent='Erreur';
-      rbody.innerHTML=e.message;
+      if(rtitle)rtitle.textContent='Erreur';
+      if(rbody)rbody.innerHTML=e.message;
     }finally{
-      btn.disabled=false;
-      btn.innerHTML='⚙ Calculer le parcours';
+      if(btn){btn.disabled=false;btn.innerHTML='⚙ Calculer le parcours';}
     }
   },50);
 }
 
 function clearRoute() {
   if(genLayer){map.removeLayer(genLayer);genLayer=null;genCoords=null;}
-  // Réafficher le réseau si on est sur l'onglet réseau
   if(currentTab==='reseau'){
     Object.entries(netGroups).forEach(([k,g])=>{
       if(netVisible[k]) g.addTo(map);
       document.getElementById('mt-'+k)?.classList.toggle('off',!netVisible[k]);
     });
   }
-  // Stopper GPS parcours si actif
   stopGenGps();
+  closeFloatPanel();
   document.getElementById('gen-result')?.classList.remove('show');
 }
 
@@ -1242,14 +1288,42 @@ function selectTrack(id){
   document.getElementById(`det-${id}`)?.classList.add('on');
   buildLegend();
   zoomTrack(id);
+
+  // Sur mobile : fermer le drawer et afficher le panneau flottant
+  if(window.innerWidth<=640){
+    closeDrawer();
+    const t=TRACKS.find(x=>x.id===id);
+    if(t) showTrackFloatPanel(t);
+  }
+}
+
+function showTrackFloatPanel(t){
+  const d = t.km<=5?'Facile':t.km<=12?'Moyen':'Sportif';
+  const off = t.name.match(/C[123]\s*—/) ? ' · Officiel PR' : '';
+  document.getElementById('fp-title').textContent = t.name;
+  document.getElementById('fp-stats').innerHTML =
+    `<span class="fp-stat">📏 ${t.km} km</span>
+     <span class="fp-stat">⏱ ${t.duree}</span>
+     <span class="fp-stat">${d}${off}</span>`;
+  document.getElementById('fp-desc').textContent =
+    `Circuit ${d.toLowerCase()} de ${t.km} km autour de Mézières-lez-Cléry. Durée estimée : ${t.duree}.`;
+  document.getElementById('fp-btns').innerHTML =
+    `<button class="fp-btn gpx" onclick="downloadGPX(${t.id})">⬇️ GPX</button>
+     <button class="fp-btn gps" onclick="startTrackGps(${t.id})">📍 GPS live</button>
+     <button class="fp-btn close-btn" onclick="clearSelection();closeFloatPanel()">← Tous</button>`;
+  document.getElementById('float-panel').classList.add('show');
 }
 function zoomTrack(id){map.fitBounds(layers[id].getBounds(),{padding:[30,30]});}
+function closeFloatPanel(){
+  document.getElementById('float-panel').classList.remove('show');
+}
 function clearSelection(){
   activeId=null;
   TRACKS.forEach(t=>layers[t.id].setStyle({weight:3,opacity:.7}));
   document.querySelectorAll('.card').forEach(c=>c.classList.remove('on'));
   document.querySelectorAll('.detail').forEach(d=>d.classList.remove('on'));
   buildLegend();
+  closeFloatPanel();
 }
 function showAll(){
   clearSelection();
