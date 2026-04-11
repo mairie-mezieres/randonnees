@@ -1310,12 +1310,20 @@ function stopGenGps(){
 }
 
 function downloadRouteGPX(){
-  if(!genCoords||genCoords.length<2) return;
-  const pts=genCoords.map(c=>`<trkpt lat="${c[0]}" lon="${c[1]}"></trkpt>`).join('\n');
-  const gpx=`<?xml version="1.0"?><gpx version="1.1" creator="MAT-Mezieres"><trk><n>Parcours généré</n><trkseg>${pts}</trkseg></trk></gpx>`;
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'}));
-  a.download='parcours-mezieres.gpx'; a.click();
+  if (!genCoords || genCoords.length < 2) return;
+
+  const gpx = buildGpxTrack('Parcours généré', genCoords);
+  const blob = new Blob([gpx], { type: 'application/gpx+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'parcours-mezieres.gpx';
+
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1379,14 +1387,57 @@ function buildLegend(el){
       <div class="ll" style="background:${t.color}"></div>${t.km}km
     </div>`).join('');
 }
+
+function buildGpxTrack(name, coords){
+  const safeName = String(name || 'Parcours')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+  const pts = coords.map(c =>
+    `<trkpt lat="${Number(c[0]).toFixed(6)}" lon="${Number(c[1]).toFixed(6)}"></trkpt>`
+  ).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx
+  version="1.1"
+  creator="MAT-Mezieres"
+  xmlns="http://www.topografix.com/GPX/1/1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>${safeName}</name>
+  </metadata>
+  <trk>
+    <name>${safeName}</name>
+    <trkseg>
+${pts}
+    </trkseg>
+  </trk>
+</gpx>`;
+}
+  
 function downloadGPX(id){
-  const t=TRACKS.find(x=>x.id===id);if(!t)return;
-  const pts=t.coords.map(c=>`<trkpt lat="${c[0]}" lon="${c[1]}"></trkpt>`).join('\n');
-  const gpx=`<?xml version="1.0"?><gpx version="1.1" creator="MAT-Mezieres"><trk><n>${t.name}</n><trkseg>${pts}</trkseg></trk></gpx>`;
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'}));
-  a.download=(t.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-'))+'.gpx';
+  const t = TRACKS.find(x => x.id === id);
+  if (!t || !t.coords || t.coords.length < 2) return;
+
+  const gpx = buildGpxTrack(t.name, t.coords);
+  const blob = new Blob([gpx], { type: 'application/gpx+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (t.name.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')) + '.gpx';
+
+  document.body.appendChild(a);
   a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // ══════════════════════════════════════════════════════════
